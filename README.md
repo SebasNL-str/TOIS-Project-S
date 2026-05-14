@@ -4,4 +4,13 @@ this is a game for the creator of Sizophreni.
 
 
 
-# Authors
+## Authors
+
+- [Narváez Sebastian](https://github.com/SebasNL-str)
+- [Ortiz Bradly](https://github.com/cBOr50)
+- [Brenes Michael](https://github.com/EndministratorI)
+
+
+## License
+
+[![MIT License](https://img.shields.io/badge/License-MIT-green.svg)](https://choosealicense.com/licenses/mit/) 
