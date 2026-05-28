@@ -1,11 +1,11 @@
 #pragma once
 #include <glad/glad.h>
-#include <glm/glm.hpp>
+#include <glm.hpp>
 #include <string>
 #include <fstream>
 #include <sstream>
 #include <iostream>
-#include <glm/gtc/type_ptr.hpp> //  asegurar compatibilidad con punteros de matrices
+#include <gtc/type_ptr.hpp> //  asegurar compatibilidad con punteros de matrices
 
 class Shader {
 public:
