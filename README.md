@@ -4,6 +4,9 @@ this is a game for the creator of Sizophreni.
 
 
 
+[![Lista de Colaboradores](https://contrib.rocks/image?repo=https://github.com/SebasNL-str/TOIS-Project-S)](https://github.com/SebasNL-str/TOIS-Project-S/graphs/contributors)
+
+
 ## Authors
 
 - [Narváez Sebastian](https://github.com/SebasNL-str)
@@ -14,3 +17,4 @@ this is a game for the creator of Sizophreni.
 ## License
 
 [![MIT License](https://img.shields.io/badge/License-MIT-green.svg)](https://choosealicense.com/licenses/mit/) 
+
