@@ -165,7 +165,7 @@ int main() {
     Shader nuestroShader("default.vert", "default.frag");
     Shader shaderSkybox("skybox.vert", "skybox.frag"); // <--- NUEVO SHADER EXCLUSIVO SKYBOX
 
-    Model model1("Recursos/Modelos/cemen/Cementerio.gltf");
+    Model model1("Resources/Models/GLTF/cemen/Cementerio.gltf");
 
 
     // --- CONFIGURACIÓN DE GEOMETRÍA VAO/VBO PARA EL SKYBOX ---
@@ -181,19 +181,19 @@ int main() {
 
     // --- DEFINICIÓN DE RUTAS PARA LOS 3 CUBEMAPS ---
     std::vector<std::string> carasDia = {
-        "Recursos/Skybox/Dia/cara_1.png", "Recursos/Skybox/Dia/cara_2.png",
-        "Recursos/Skybox/Dia/cara_3.png",   "Recursos/Skybox/Dia/cara_4.png",
-        "Recursos/Skybox/Dia/cara_5.png", "Recursos/Skybox/Dia/cara_6.png"
+        "Resources/Skybox/Day/cara_1.png", "Resources/Skybox/Day/cara_2.png",
+        "Resources/Skybox/Day/cara_3.png",   "Resources/Skybox/Day/cara_4.png",
+        "Resources/Skybox/Day/cara_5.png", "Resources/Skybox/Day/cara_6.png"
     };
     std::vector<std::string> carasNoche1 = {
-        "Recursos/Skybox/Noche/cara_1.png", "Recursos/Skybox/Noche/cara_2.png",
-        "Recursos/Skybox/Noche/cara_3.png",   "Recursos/Skybox/Noche/cara_4.png",
-        "Recursos/Skybox/Noche/cara_5.png", "Recursos/Skybox/Noche/cara_6.png"
+        "Resources/Skybox/Night/cara_1.png", "Resources/Skybox/Night/cara_2.png",
+        "Resources/Skybox/Night/cara_3.png",   "Resources/Skybox/Night/cara_4.png",
+        "Resources/Skybox/Night/cara_5.png", "Resources/Skybox/Night/cara_6.png"
     };
     std::vector<std::string> carasAtardecer = {
-        "Recursos/Skybox/Atardecer/cara_1.png", "Recursos/Skybox/Atardecer/cara_2.png",
-        "Recursos/Skybox/Atardecer/cara_3.png",   "Recursos/Skybox/Atardecer/cara_4.png",
-        "Recursos/Skybox/Atardecer/cara_5.png", "Recursos/Skybox/Atardecer/cara_6.png"
+        "Resources/Skybox/Sunset/cara_1.png", "Resources/Skybox/Sunset/cara_2.png",
+        "Resources/Skybox/Sunset/cara_3.png",   "Resources/Skybox/Sunset/cara_4.png",
+        "Resources/Skybox/Sunset/cara_5.png", "Resources/Skybox/Sunset/cara_6.png"
     };
 
     // Cargar los cubemaps en el arreglo indexado
