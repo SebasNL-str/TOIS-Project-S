@@ -1,4 +1,5 @@
 #include <iostream>
+#include <fstream>
 #include <memory>
 #include <vector>
 
@@ -27,6 +28,47 @@ bool firstMouse = true;
 float lastX = SCREEN_WIDTH * 0.5f;
 float lastY = SCREEN_HEIGHT * 0.5f;
 
+enum class MenuScreen
+{
+    Main,
+    Settings
+};
+
+MenuScreen currentMenuScreen = MenuScreen::Main;
+
+bool FileExists(const std::string& path)
+{
+    std::ifstream file(path.c_str(), std::ios::binary);
+    return file.good();
+}
+
+void ShowMainMenu(MenuRenderer& menu)
+{
+    currentMenuScreen = MenuScreen::Main;
+    menu.SetTitle("TOIS PROJECT S");
+    menu.SetSubtitle("MENU PRINCIPAL");
+    menu.SetFooter("ESC: MENU  ENTER: SELECCIONAR");
+    menu.SetItems({
+        gameStarted ? "CONTINUAR" : "JUGAR",
+        "CONFIGURACIONES",
+        "SALIR"
+        });
+    menu.SetSelectedIndex(0);
+}
+
+void ShowSettingsMenu(MenuRenderer& menu, const SoundManager& sound, bool hitboxDebug)
+{
+    currentMenuScreen = MenuScreen::Settings;
+    menu.SetTitle("CONFIGURACIONES");
+    menu.SetSubtitle("AJUSTES");
+    menu.SetFooter("ENTER: CAMBIAR  ESC: VOLVER");
+    menu.SetItems({
+        sound.IsAmbientEnabled() ? "AUDIO: ACTIVADO" : "AUDIO: DESACTIVADO",
+        hitboxDebug ? "HITBOX: ACTIVADO" : "HITBOX: DESACTIVADO",
+        "VOLVER"
+        });
+}
+
 void SetMenuOpen(GLFWwindow* window, MenuRenderer& menu, SoundManager& sound, bool open)
 {
     menuOpen = open;
@@ -35,6 +77,7 @@ void SetMenuOpen(GLFWwindow* window, MenuRenderer& menu, SoundManager& sound, bo
 
     if (open)
     {
+        ShowMainMenu(menu);
         glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
         sound.StopAmbient();
     }
@@ -63,7 +106,7 @@ void processGameplayInput(GLFWwindow* window)
         camera.ProcessKeyboard(RIGHT, deltaTime);
 }
 
-void processMenuInput(GLFWwindow* window, MenuRenderer& menu, SoundManager& sound)
+void processMenuInput(GLFWwindow* window, MenuRenderer& menu, SoundManager& sound, bool& hitboxDebug)
 {
     static bool escWasPressed = false;
     static bool upWasPressed = false;
@@ -73,7 +116,11 @@ void processMenuInput(GLFWwindow* window, MenuRenderer& menu, SoundManager& soun
     bool escPressed = glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS;
     if (escPressed && !escWasPressed)
     {
-        if (gameStarted)
+        if (menuOpen && currentMenuScreen == MenuScreen::Settings)
+        {
+            ShowMainMenu(menu);
+        }
+        else if (gameStarted)
         {
             SetMenuOpen(window, menu, sound, !menuOpen);
         }
@@ -114,17 +161,46 @@ void processMenuInput(GLFWwindow* window, MenuRenderer& menu, SoundManager& soun
 
     if (enterPressed && !enterWasPressed)
     {
-        switch (menu.GetSelectedIndex())
+        if (currentMenuScreen == MenuScreen::Main)
         {
-        case 0:
-            gameStarted = true;
-            SetMenuOpen(window, menu, sound, false);
-            break;
-        case 2:
-            glfwSetWindowShouldClose(window, true);
-            break;
-        default:
-            break;
+            switch (menu.GetSelectedIndex())
+            {
+            case 0:
+                gameStarted = true;
+                SetMenuOpen(window, menu, sound, false);
+                break;
+            case 1:
+                ShowSettingsMenu(menu, sound, hitboxDebug);
+                menu.SetSelectedIndex(0);
+                break;
+            case 2:
+                glfwSetWindowShouldClose(window, true);
+                break;
+            default:
+                break;
+            }
+        }
+        else if (currentMenuScreen == MenuScreen::Settings)
+        {
+            int selectedIndex = menu.GetSelectedIndex();
+            switch (selectedIndex)
+            {
+            case 0:
+                sound.ToggleAmbient();
+                ShowSettingsMenu(menu, sound, hitboxDebug);
+                menu.SetSelectedIndex(selectedIndex);
+                break;
+            case 1:
+                hitboxDebug = !hitboxDebug;
+                ShowSettingsMenu(menu, sound, hitboxDebug);
+                menu.SetSelectedIndex(selectedIndex);
+                break;
+            case 2:
+                ShowMainMenu(menu);
+                break;
+            default:
+                break;
+            }
         }
     }
 
@@ -206,6 +282,7 @@ int main()
     menuSettings.visible = true;
     menuSettings.useBackgroundImage = false;
     menu.Configure(menuSettings);
+    ShowMainMenu(menu);
 
     SoundManager sound("Resources/Sound/ambient.wav");
     SetMenuOpen(window, menu, sound, true);
@@ -247,8 +324,15 @@ int main()
     // =========================
     // SCENE OBJECTS
     // =========================
-    auto sphere = std::make_shared<Model>("Resources/Models/OBJ/Sphere.obj");
-    scene.SetLightSphere(sphere);
+    if (FileExists("Resources/Models/OBJ/Sphere.obj"))
+    {
+        auto sphere = std::make_shared<Model>("Resources/Models/OBJ/Sphere.obj");
+        scene.SetLightSphere(sphere);
+    }
+    else
+    {
+        scene.SetLightSphere(nullptr);
+    }
 
     scene.AddLight({
         LightType::Point,
@@ -281,7 +365,7 @@ int main()
         lastFrame = currentFrame;
 
         glfwPollEvents();
-        processMenuInput(window, menu, sound);
+        processMenuInput(window, menu, sound, hitboxDebug);
 
         if (!menuOpen && gameStarted)
         {
