@@ -191,7 +191,7 @@ void Model::processMesh(aiMesh* mesh, const aiScene* scene, glm::mat4 transform)
     // 2. Si no hay fallback, intentar cargar la textura difusa del material
     if (diffuseTex == 0 && material &&
         material->GetTexture(aiTextureType_DIFFUSE, 0, &pathTex) == AI_SUCCESS) {
-        diffuseTex = loadTexture("modelos/" + std::string(pathTex.C_Str()));
+        diffuseTex = loadTexture("Resources/Models/" + std::string(pathTex.C_Str()));
     }
 
     // 3. Si tampoco hay textura, intentar leer el color difuso
@@ -224,7 +224,7 @@ void Model::processMesh(aiMesh* mesh, const aiScene* scene, glm::mat4 transform)
     // =========================
     GLuint roughnessTex = 0;
     if (material->GetTexture(aiTextureType_DIFFUSE_ROUGHNESS, 0, &pathTex) == AI_SUCCESS) {
-        roughnessTex = loadTexture("modelos/" + std::string(pathTex.C_Str()));
+        roughnessTex = loadTexture("Resources/Models/" + std::string(pathTex.C_Str()));
     }
 
     // =========================
@@ -232,7 +232,7 @@ void Model::processMesh(aiMesh* mesh, const aiScene* scene, glm::mat4 transform)
     // =========================
     GLuint metallicTex = 0;
     if (material->GetTexture(aiTextureType_METALNESS, 0, &pathTex) == AI_SUCCESS) {
-        metallicTex = loadTexture("modelos/" + std::string(pathTex.C_Str()));
+        metallicTex = loadTexture("Resources/Models/" + std::string(pathTex.C_Str()));
     }
 
     // =========================

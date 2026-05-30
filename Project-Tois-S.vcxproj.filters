@@ -82,16 +82,22 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="default.frag">
+    <None Include="Resources\Shaders\default.frag">
       <Filter>Archivos de recursos\Shaders</Filter>
     </None>
-    <None Include="default.vert">
+    <None Include="Resources\Shaders\default.vert">
       <Filter>Archivos de recursos\Shaders</Filter>
     </None>
-    <None Include="skybox.frag">
+    <None Include="Resources\Shaders\emissive.frag">
       <Filter>Archivos de recursos\Shaders</Filter>
     </None>
-    <None Include="skybox.vert">
+    <None Include="Resources\Shaders\emissive.vert">
+      <Filter>Archivos de recursos\Shaders</Filter>
+    </None>
+    <None Include="Resources\Shaders\skybox.frag">
+      <Filter>Archivos de recursos\Shaders</Filter>
+    </None>
+    <None Include="Resources\Shaders\skybox.vert">
       <Filter>Archivos de recursos\Shaders</Filter>
     </None>
   </ItemGroup>
