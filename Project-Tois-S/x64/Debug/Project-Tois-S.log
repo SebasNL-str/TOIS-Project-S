@@ -1,8 +1,8 @@
 ﻿  Main.cpp
-C:\Users\DELL\source\repos\TOIS-Project-S\Main.cpp(53,31): warning C4244: '=': conversión de 'double' a 'float'; posible pérdida de datos
-C:\Users\DELL\source\repos\TOIS-Project-S\Main.cpp(53,47): warning C4244: '=': conversión de 'double' a 'float'; posible pérdida de datos
-C:\Users\DELL\source\repos\TOIS-Project-S\Main.cpp(55,19): warning C4244: 'inicializando': conversión de 'double' a 'float'; posible pérdida de datos
-C:\Users\DELL\source\repos\TOIS-Project-S\Main.cpp(56,19): warning C4244: 'inicializando': conversión de 'double' a 'float'; posible pérdida de datos
-C:\Users\DELL\source\repos\TOIS-Project-S\Main.cpp(58,13): warning C4244: '=': conversión de 'double' a 'float'; posible pérdida de datos
-C:\Users\DELL\source\repos\TOIS-Project-S\Main.cpp(58,29): warning C4244: '=': conversión de 'double' a 'float'; posible pérdida de datos
-  Project-Tois-S.vcxproj -> C:\Users\DELL\Source\Repos\TOIS-Project-S\x64\Debug\Project-Tois-S.exe
+  Mesh.cpp
+  Model.cpp
+  Shader.cpp
+C:\Users\DELL\Source\Repos\TOIS-Project-S\Dependencies\GLEW\include\GL\glew.h(85,1): error C1189: #error:  gl.h included before glew.h
+  (compilando archivo de origen "Main.cpp")
+  
+  Generando código...
