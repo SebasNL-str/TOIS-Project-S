@@ -100,5 +100,11 @@
     <None Include="Resources\Shaders\skybox.vert">
       <Filter>Archivos de recursos\Shaders</Filter>
     </None>
+    <None Include="Resources\Shaders\skybox_sphere.frag">
+      <Filter>Archivos de recursos\Shaders</Filter>
+    </None>
+    <None Include="Resources\Shaders\skybox_sphere.vert">
+      <Filter>Archivos de recursos\Shaders</Filter>
+    </None>
   </ItemGroup>
 </Project>

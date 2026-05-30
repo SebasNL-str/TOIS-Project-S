@@ -49,6 +49,8 @@
     <None Include="Resources\Shaders\emissive.vert" />
     <None Include="Resources\Shaders\skybox.frag" />
     <None Include="Resources\Shaders\skybox.vert" />
+    <None Include="Resources\Shaders\skybox_sphere.frag" />
+    <None Include="Resources\Shaders\skybox_sphere.vert" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>17.0</VCProjectVersion>
