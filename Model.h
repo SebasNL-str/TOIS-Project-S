@@ -1,118 +1,43 @@
 #pragma once
-#include <glad/glad.h>
-#include <assimp/Importer.hpp>
-#include <assimp/scene.h>
-#include <assimp/postprocess.h>
-#include <glm.hpp>
-#include <iostream>
+
 #include <vector>
 #include <string>
-
+#include <glm.hpp>
 #include "Mesh.h"
-#include "Texture.h" // Asegúrate de tener el archivo Texture.h con stb_image
+#include "Hitbox.h"
 
-class Model {
+class Model
+{
 public:
-    std::vector<Mesh> meshes;
-    std::string directory;
-    std::vector<Texture> textures_loaded; // Almacena texturas para evitar duplicados
+    // Constructores
+    Model(const std::string& path);
+    Model(const std::string& path, const std::string& fallbackTexture);
 
-    Model(const std::string& path) {
-        loadModel(path);
-    }
+    // Dibujar el modelo completo
+    void Draw();
+    BoundingBox hitbox;
+    std::vector<glm::vec3> allVertices;
 
-    void Draw(Shader& shader) {
-        for (unsigned int i = 0; i < meshes.size(); i++) {
-            meshes[i].Draw(shader);
-        }
-    }
 
 private:
-    void loadModel(const std::string& path) {
-        Assimp::Importer importer;
-        const aiScene* scene = importer.ReadFile(path,
-            aiProcess_Triangulate | aiProcess_FlipUVs | aiProcess_GenSmoothNormals | aiProcess_ConvertToLeftHanded | aiProcess_GlobalScale );
+    // Lista de mallas
+    std::vector<Mesh> meshes;
 
-        if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode) {
-            std::cerr << "ERROR::ASSIMP:: " << importer.GetErrorString() << std::endl;
-            return;
-        }
-        directory = path.substr(0, path.find_last_of('/'));
 
-        processNode(scene->mRootNode, scene);
-    }
+    // Textura de respaldo (fallback)
+    GLuint fallbackTexture = 0;
 
-    void processNode(aiNode* node, const aiScene* scene) {
-        for (unsigned int i = 0; i < node->mNumMeshes; i++) {
-            aiMesh* mesh = scene->mMeshes[node->mMeshes[i]];
-            meshes.push_back(processMesh(mesh, scene));
-        }
-        for (unsigned int i = 0; i < node->mNumChildren; i++) {
-            processNode(node->mChildren[i], scene);
-        }
-    }
+    // =========================
+    // Funciones internas
+    // =========================
+    void loadModel(const std::string& path);
 
-    Mesh processMesh(aiMesh* mesh, const aiScene* scene) {
-        std::vector<Vertex> vertices;
-        std::vector<unsigned int> indices;
-        std::vector<Texture> textures;
+    // Recorrido recursivo de nodos
+    void processNode(struct aiNode* node, const struct aiScene* scene, glm::mat4 parentTransform);
 
-        // --- Procesar Vértices (Posición, Normales, UVs) ---
-        for (unsigned int i = 0; i < mesh->mNumVertices; i++) {
-            Vertex vertex;
-            vertex.Position = glm::vec3(mesh->mVertices[i].x, mesh->mVertices[i].y, mesh->mVertices[i].z);
-            if (mesh->HasNormals())
-                vertex.Normal = glm::vec3(mesh->mNormals[i].x, mesh->mNormals[i].y, mesh->mNormals[i].z);
+    // Procesamiento de cada malla
+    void processMesh(struct aiMesh* mesh, const struct aiScene* scene, glm::mat4 transform);
 
-            if (mesh->mTextureCoords[0])
-                vertex.TexCoords = glm::vec2(mesh->mTextureCoords[0][i].x, mesh->mTextureCoords[0][i].y);
-            else
-                vertex.TexCoords = glm::vec2(0.0f, 0.0f);
-
-            vertices.push_back(vertex);
-        }
-
-        // --- Procesar Índices ---
-        for (unsigned int i = 0; i < mesh->mNumFaces; i++) {
-            aiFace face = mesh->mFaces[i];
-            for (unsigned int j = 0; j < face.mNumIndices; j++)
-                indices.push_back(face.mIndices[j]);
-        }
-
-        // --- Procesar Materiales y Texturas ---
-        aiMaterial* material = scene->mMaterials[mesh->mMaterialIndex];
-
-        // Buscamos texturas "Diffuse" (el color base del objeto)
-        std::vector<Texture> diffuseMaps = loadMaterialTextures(material, aiTextureType_DIFFUSE, "texture_diffuse");
-        textures.insert(textures.end(), diffuseMaps.begin(), diffuseMaps.end());
-
-        return Mesh(vertices, indices, textures);
-    }
-
-    std::vector<Texture> loadMaterialTextures(aiMaterial* mat, aiTextureType type, std::string typeName) {
-        std::vector<Texture> textures;
-        for (unsigned int i = 0; i < mat->GetTextureCount(type); i++) {
-            aiString str;
-            mat->GetTexture(type, i, &str);
-
-            // Verificar si la textura ya fue cargada antes
-            bool skip = false;
-            for (unsigned int j = 0; j < textures_loaded.size(); j++) {
-                if (std::strcmp(textures_loaded[j].path.data(), str.C_Str()) == 0) {
-                    textures.push_back(textures_loaded[j]);
-                    skip = true;
-                    break;
-                }
-            }
-
-            if (!skip) {   // Si la textura no se ha cargado, la creamos
-                Texture texture(str.C_Str(), this->directory);
-                texture.type = typeName;
-                texture.path = str.C_Str();
-                textures.push_back(texture);
-                textures_loaded.push_back(texture);
-            }
-        }
-        return textures;
-    }
+    // Carga de texturas desde archivo
+    GLuint loadTexture(const std::string& path);
 };
