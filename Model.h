@@ -23,6 +23,7 @@ private:
     // Lista de mallas
     std::vector<Mesh> meshes;
 
+    std::string modelDirectory;
 
     // Textura de respaldo (fallback)
     GLuint fallbackTexture = 0;
@@ -40,4 +41,5 @@ private:
 
     // Carga de texturas desde archivo
     GLuint loadTexture(const std::string& path);
+    std::string resolveTexturePath(const std::string& texturePath) const;
 };

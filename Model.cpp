@@ -3,7 +3,9 @@
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
 #include <SOIL2/SOIL2.h>
+#include <algorithm>
 #include <iostream>
+#include <fstream>
 #include <glm.hpp>
 #include <gtc/matrix_transform.hpp>
 #include <gtc/type_ptr.hpp>
@@ -54,12 +56,52 @@ GLuint Model::loadTexture(const std::string& filename)
     return texture;
 }
 
+std::string Model::resolveTexturePath(const std::string& texturePath) const
+{
+    if (texturePath.empty())
+    {
+        return texturePath;
+    }
+
+    if (texturePath.size() > 1 && texturePath[1] == ':')
+    {
+        return texturePath;
+    }
+
+    if (texturePath[0] == '/' || texturePath[0] == '\\')
+    {
+        return texturePath;
+    }
+
+    std::string normalizedPath = texturePath;
+    std::replace(normalizedPath.begin(), normalizedPath.end(), '\\', '/');
+
+    std::vector<std::string> candidates;
+    if (!modelDirectory.empty())
+    {
+        candidates.push_back(modelDirectory + "/" + normalizedPath);
+    }
+    candidates.push_back("Resources/Models/" + normalizedPath);
+    candidates.push_back(normalizedPath);
+
+    for (const std::string& candidate : candidates)
+    {
+        std::ifstream file(candidate.c_str(), std::ios::binary);
+        if (file.good())
+        {
+            return candidate;
+        }
+    }
+
+    return candidates.front();
+}
+
 // =========================
 // CONSTRUCTORES
 // =========================
 Model::Model(const std::string& path)
 {
-    fallbackTexture = 0; // sin fallback explícito
+    fallbackTexture = 0; // sin fallback explÃ­cito
     loadModel(path);
 }
 
@@ -83,6 +125,12 @@ void Model::Draw()
 // =========================
 void Model::loadModel(const std::string& path)
 {
+    std::string normalizedPath = path;
+    std::replace(normalizedPath.begin(), normalizedPath.end(), '\\', '/');
+
+    std::size_t lastSlash = normalizedPath.find_last_of('/');
+    modelDirectory = lastSlash == std::string::npos ? "" : normalizedPath.substr(0, lastSlash);
+
     Assimp::Importer importer;
     const aiScene* scene = importer.ReadFile(
         path,
@@ -179,11 +227,11 @@ void Model::processMesh(aiMesh* mesh, const aiScene* scene, glm::mat4 transform)
     aiString pathTex;
 
     // =========================
-    // DIFUSA (fallback explícito > material > color difuso > blanco)
+    // DIFUSA (fallback explÃ­cito > material > color difuso > blanco)
     // =========================
     GLuint diffuseTex = 0;
 
-    // 1. Si hay fallback explícito, úsalo siempre
+    // 1. Si hay fallback explÃ­cito, Ãºsalo siempre
     if (fallbackTexture != 0) {
         diffuseTex = fallbackTexture;
     }
@@ -191,7 +239,7 @@ void Model::processMesh(aiMesh* mesh, const aiScene* scene, glm::mat4 transform)
     // 2. Si no hay fallback, intentar cargar la textura difusa del material
     if (diffuseTex == 0 && material &&
         material->GetTexture(aiTextureType_DIFFUSE, 0, &pathTex) == AI_SUCCESS) {
-        diffuseTex = loadTexture("Resources/Models/" + std::string(pathTex.C_Str()));
+        diffuseTex = loadTexture(resolveTexturePath(pathTex.C_Str()));
     }
 
     // 3. Si tampoco hay textura, intentar leer el color difuso
@@ -210,7 +258,7 @@ void Model::processMesh(aiMesh* mesh, const aiScene* scene, glm::mat4 transform)
         }
     }
 
-    // 4. Última alternativa: blanco
+    // 4. Ãšltima alternativa: blanco
     if (diffuseTex == 0) {
         unsigned char white[3] = { 255, 255, 255 };
         glGenTextures(1, &diffuseTex);
@@ -224,7 +272,7 @@ void Model::processMesh(aiMesh* mesh, const aiScene* scene, glm::mat4 transform)
     // =========================
     GLuint roughnessTex = 0;
     if (material->GetTexture(aiTextureType_DIFFUSE_ROUGHNESS, 0, &pathTex) == AI_SUCCESS) {
-        roughnessTex = loadTexture("Resources/Models/" + std::string(pathTex.C_Str()));
+        roughnessTex = loadTexture(resolveTexturePath(pathTex.C_Str()));
     }
 
     // =========================
@@ -232,7 +280,7 @@ void Model::processMesh(aiMesh* mesh, const aiScene* scene, glm::mat4 transform)
     // =========================
     GLuint metallicTex = 0;
     if (material->GetTexture(aiTextureType_METALNESS, 0, &pathTex) == AI_SUCCESS) {
-        metallicTex = loadTexture("Resources/Models/" + std::string(pathTex.C_Str()));
+        metallicTex = loadTexture(resolveTexturePath(pathTex.C_Str()));
     }
 
     // =========================
