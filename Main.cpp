@@ -1,25 +1,55 @@
 #include <iostream>
 #include <memory>
-#include "Skybox.h"
-#include "Camera.h"
-#include "Mesh.h"
-#include "Shader.h"
-#include "Scene.h"
+#include <vector>
 
 #define GLEW_STATIC
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 
+#include "Skybox.h"
+#include "Camera.h"
+#include "Mesh.h"
+#include "Shader.h"
+#include "Scene.h"
+#include "Menu.h"
+#include "SoundManager.h"
+
+const int SCREEN_WIDTH = 1000;
+const int SCREEN_HEIGHT = 800;
+
 Camera camera(glm::vec3(0.0f, 10.0f, 0.0f));
 
 float deltaTime = 0.0f;
 float lastFrame = 0.0f;
+bool gameStarted = false;
+bool menuOpen = true;
+bool firstMouse = true;
+float lastX = SCREEN_WIDTH * 0.5f;
+float lastY = SCREEN_HEIGHT * 0.5f;
 
-void processInput(GLFWwindow* window)
+void SetMenuOpen(GLFWwindow* window, MenuRenderer& menu, SoundManager& sound, bool open)
 {
-    if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
-        glfwSetWindowShouldClose(window, true);
+    menuOpen = open;
+    menu.SetVisible(open);
+    firstMouse = true;
 
+    if (open)
+    {
+        glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+        sound.StopAmbient();
+    }
+    else
+    {
+        glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+        if (gameStarted)
+        {
+            sound.PlayAmbientIfEnabled();
+        }
+    }
+}
+
+void processGameplayInput(GLFWwindow* window)
+{
     if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
         camera.ProcessKeyboard(FORWARD, deltaTime);
 
@@ -33,23 +63,96 @@ void processInput(GLFWwindow* window)
         camera.ProcessKeyboard(RIGHT, deltaTime);
 }
 
+void processMenuInput(GLFWwindow* window, MenuRenderer& menu, SoundManager& sound)
+{
+    static bool escWasPressed = false;
+    static bool upWasPressed = false;
+    static bool downWasPressed = false;
+    static bool enterWasPressed = false;
+
+    bool escPressed = glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS;
+    if (escPressed && !escWasPressed)
+    {
+        if (gameStarted)
+        {
+            SetMenuOpen(window, menu, sound, !menuOpen);
+        }
+        else
+        {
+            SetMenuOpen(window, menu, sound, true);
+        }
+    }
+    escWasPressed = escPressed;
+
+    if (!menuOpen)
+    {
+        return;
+    }
+
+    bool upPressed =
+        glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS ||
+        glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS;
+
+    bool downPressed =
+        glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS ||
+        glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS;
+
+    bool enterPressed =
+        glfwGetKey(window, GLFW_KEY_ENTER) == GLFW_PRESS ||
+        glfwGetKey(window, GLFW_KEY_KP_ENTER) == GLFW_PRESS ||
+        glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS;
+
+    if (upPressed && !upWasPressed)
+    {
+        menu.MoveSelection(-1);
+    }
+
+    if (downPressed && !downWasPressed)
+    {
+        menu.MoveSelection(1);
+    }
+
+    if (enterPressed && !enterWasPressed)
+    {
+        switch (menu.GetSelectedIndex())
+        {
+        case 0:
+            gameStarted = true;
+            SetMenuOpen(window, menu, sound, false);
+            break;
+        case 2:
+            glfwSetWindowShouldClose(window, true);
+            break;
+        default:
+            break;
+        }
+    }
+
+    upWasPressed = upPressed;
+    downWasPressed = downPressed;
+    enterWasPressed = enterPressed;
+}
+
 void mouse_callback(GLFWwindow* window, double xpos, double ypos)
 {
-    static bool firstMouse = true;
-    static float lastX = 400, lastY = 300;
+    if (menuOpen || !gameStarted)
+    {
+        firstMouse = true;
+        return;
+    }
 
     if (firstMouse)
     {
-        lastX = xpos;
-        lastY = ypos;
+        lastX = static_cast<float>(xpos);
+        lastY = static_cast<float>(ypos);
         firstMouse = false;
     }
 
-    float xoffset = xpos - lastX;
-    float yoffset = lastY - ypos;
+    float xoffset = static_cast<float>(xpos) - lastX;
+    float yoffset = lastY - static_cast<float>(ypos);
 
-    lastX = xpos;
-    lastY = ypos;
+    lastX = static_cast<float>(xpos);
+    lastY = static_cast<float>(ypos);
 
     camera.ProcessMouseMovement(xoffset, yoffset);
 }
@@ -65,7 +168,7 @@ int main()
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-    GLFWwindow* window = glfwCreateWindow(1000, 800, "T.O.I.S: Project S", NULL, NULL);
+    GLFWwindow* window = glfwCreateWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "T.O.I.S: Project S", NULL, NULL);
     if (!window)
     {
         std::cout << "Error creando ventana\n";
@@ -75,7 +178,7 @@ int main()
 
     glfwMakeContextCurrent(window);
     glfwSetCursorPosCallback(window, mouse_callback);
-    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
 
     // =========================
     // GLEW
@@ -98,24 +201,38 @@ int main()
     // =========================
     // CORE SYSTEMS
     // =========================
-    Shader shader("Shaders/default.vert", "Shaders/default.frag");
+    MenuRenderer menu;
+    MenuSettings menuSettings;
+    menuSettings.visible = true;
+    menuSettings.useBackgroundImage = false;
+    menu.Configure(menuSettings);
+
+    SoundManager sound("Resources/Sound/ambient.wav");
+    SetMenuOpen(window, menu, sound, true);
+
+    Shader shader("default.vert", "default.frag");
+    shader.Use();
+    shader.SetInt("texture1", 0);
 
     // Crear skybox
-    Shader skyboxShader("Shaders/skybox.vert", "Shaders/skybox.frag");
+    Shader skyboxShader("skybox.vert", "skybox.frag");
+    skyboxShader.Use();
+    skyboxShader.SetInt("skybox", 0);
+
     std::vector<std::string> faces = {
         "Resources/Skybox/Cubemaps/Day/cara_1.png", // px - right
         "Resources/Skybox/Cubemaps/Day/cara_2.png", // nx - left
         "Resources/Skybox/Cubemaps/Day/cara_3.png", // py - top
         "Resources/Skybox/Cubemaps/Day/cara_4.png", // ny - bottom
         "Resources/Skybox/Cubemaps/Day/cara_5.png", // pz - front
-        "Resources/Skybox/Cubemaps/Day/cara_6.png" //nz - back
+        "Resources/Skybox/Cubemaps/Day/cara_6.png" // nz - back
     };
     Skybox skybox(faces);
 
     bool hitboxDebug = false;
     bool hitboxC = false;
 
-    Shader skyboxSphereShader("Resourcs/Shaders/skybox_sphere.vert", "Resources/Shaders/skybox_sphere.frag");
+    Shader skyboxSphereShader("Resources/Shaders/skybox_sphere.vert", "Resources/Shaders/skybox_sphere.frag");
     Shader hitboxShader("Resources/Shaders/hitbox.vert", "Resources/Shaders/hitbox.frag");
     Skybox sphereSkybox("Resources/Skybox/Sphere/moonless_golf_4k.png", SkyboxType::Sphere);
 
@@ -125,106 +242,103 @@ int main()
 
     SkyboxType activeType = SkyboxType::Cube;
 
-
     auto GRGTF = std::make_shared<Model>("Resources/Models/GLTF/Graveyard/Cementerio.gltf");
-
-    // Light
-    // =========================
-
 
     // =========================
     // SCENE OBJECTS
     // =========================
-    // LUZ PUNTUAL
-// ========================
     auto sphere = std::make_shared<Model>("Resources/Models/OBJ/Sphere.obj");
-    // scene.SetLightDebugModel(sphere);
     scene.SetLightSphere(sphere);
-
 
     scene.AddLight({
         LightType::Point,
-        {5.0f, 5.0f, 0.0f},        // posición (arriba)
-        {0.0f, -1.0f, 0.0f},       // dirección (hacia abajo)
-        {1.0f, 1.0f, 1.0f},        // color blanco
-        20.0f                      // intensidad alta para debug
+        {5.0f, 5.0f, 0.0f},
+        {0.0f, -1.0f, 0.0f},
+        {1.0f, 1.0f, 1.0f},
+        20.0f
         });
-
 
     scene.AddObject(GRGTF, {
-{5.0f, 0.0f, 45.0f},
-{0.0f, 0.0f, 0.0f},
-{0.8f, 0.8f, 0.8f}
+        {5.0f, 0.0f, 45.0f},
+        {0.0f, 0.0f, 0.0f},
+        {0.8f, 0.8f, 0.8f}
         });
-
-
-    glm::vec3 camPos = camera.GetPosition();
 
     while (!glfwWindowShouldClose(window))
     {
-        glViewport(0, 0, 1000, 800);
+        int framebufferWidth = SCREEN_WIDTH;
+        int framebufferHeight = SCREEN_HEIGHT;
+        glfwGetFramebufferSize(window, &framebufferWidth, &framebufferHeight);
+        if (framebufferWidth <= 0)
+            framebufferWidth = SCREEN_WIDTH;
+        if (framebufferHeight <= 0)
+            framebufferHeight = SCREEN_HEIGHT;
 
-        float currentFrame = glfwGetTime();
+        glViewport(0, 0, framebufferWidth, framebufferHeight);
+
+        float currentFrame = static_cast<float>(glfwGetTime());
         deltaTime = currentFrame - lastFrame;
         lastFrame = currentFrame;
 
+        glfwPollEvents();
+        processMenuInput(window, menu, sound);
 
-        glm::vec3 oldPos = camera.GetPosition();
+        if (!menuOpen && gameStarted)
+        {
+            glm::vec3 oldPos = camera.GetPosition();
 
-        processInput(window);
+            processGameplayInput(window);
 
+            glm::vec3 newPos = camera.GetPosition();
 
-        glm::vec3 newPos = camera.GetPosition();
+            if (hitboxC)
+            {
+                CameraCollider camCollider{ newPos, 0.2f };
+                bool blocked = false;
+                for (auto& obj : scene.GetObjects())
+                {
+                    BoundingBox worldBox = TransformBoundingBox(obj.model->hitbox, obj.GetModelMatrix());
 
-        if (hitboxC) {
-            CameraCollider camCollider{ newPos, 0.2f };
-            bool blocked = false;
-            for (auto& obj : scene.GetObjects()) {
-                // Transformar la caja local del modelo al espacio mundial
-                BoundingBox worldBox = TransformBoundingBox(obj.model->hitbox, obj.GetModelMatrix());
-
-                // Usar la caja transformada para colisión
-                if (CheckCollisionCameraBox(camCollider, worldBox)) {
-                    blocked = true;
-                    break;
+                    if (CheckCollisionCameraBox(camCollider, worldBox))
+                    {
+                        blocked = true;
+                        break;
+                    }
                 }
-            }
 
-            if (blocked) {
-                camera.ForcePosition(oldPos); // revertimos solo si hay colisión
+                if (blocked)
+                {
+                    camera.ForcePosition(oldPos);
+                }
             }
         }
 
-        glfwPollEvents();
-
-
-
-
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+        if (menuOpen || !gameStarted)
+        {
+            menu.Render(framebufferWidth, framebufferHeight);
+            glfwSwapBuffers(window);
+            continue;
+        }
 
         // =========================
         // SKYBOX
         // =========================
-        // Aquí decides si activar el modo debug
-        bool debugView = true; // cambia a true si quieres probar sin traslación RECOMENDADO
-
-
-        if (activeType == SkyboxType::Cube) {
+        if (activeType == SkyboxType::Cube)
+        {
             skyboxShader.Use();
-            skyboxShader.SetInt("useViewNoTranslation", debugView ? 1 : 0);
-            skybox.Draw(skyboxShader, camera, 1000.0f, 800.0f);
+            skybox.Draw(skyboxShader, camera, static_cast<float>(framebufferWidth), static_cast<float>(framebufferHeight));
         }
-        else if (activeType == SkyboxType::Sphere) {
+        else if (activeType == SkyboxType::Sphere)
+        {
             skyboxSphereShader.Use();
-            sphereSkybox.Draw(skyboxSphereShader, camera, 1000, 800);
+            sphereSkybox.Draw(skyboxSphereShader, camera, static_cast<float>(framebufferWidth), static_cast<float>(framebufferHeight));
         }
-
 
         // =========================
         // ESCENA
         // =========================
-
-
         shader.Use();
 
         shader.SetFloat("spotCutOff", glm::cos(glm::radians(12.5f)));
@@ -232,12 +346,13 @@ int main()
 
         scene.Draw(shader, emissiveShader, camera);
 
-        if (hitboxDebug) {
+        if (hitboxDebug)
+        {
             hitboxShader.Use();
             scene.DrawHitboxes(hitboxShader,
                 camera,
                 glm::perspective(glm::radians(camera.GetZoom()),
-                    1000.0f / 800.0f,
+                    static_cast<float>(framebufferWidth) / static_cast<float>(framebufferHeight),
                     0.1f,
                     100.0f));
         }
@@ -245,7 +360,7 @@ int main()
         glfwSwapBuffers(window);
     }
 
-
+    sound.StopAmbient();
     glfwTerminate();
     return 0;
 }
