@@ -54,6 +54,12 @@
     <ClInclude Include="ShadingModel.h">
       <Filter>Archivos de encabezado</Filter>
     </ClInclude>
+    <ClInclude Include="SoundManager.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
+    <ClInclude Include="Menu.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Main.cpp">
@@ -94,6 +100,12 @@
     <None Include="Resources\Shaders\emissive.vert">
       <Filter>Archivos de recursos\Shaders</Filter>
     </None>
+    <None Include="Resources\Shaders\hitbox.frag">
+      <Filter>Archivos de recursos\Shaders</Filter>
+    </None>
+    <None Include="Resources\Shaders\hitbox.vert">
+      <Filter>Archivos de recursos\Shaders</Filter>
+    </None>
     <None Include="Resources\Shaders\skybox.frag">
       <Filter>Archivos de recursos\Shaders</Filter>
     </None>
@@ -104,6 +116,12 @@
       <Filter>Archivos de recursos\Shaders</Filter>
     </None>
     <None Include="Resources\Shaders\skybox_sphere.vert">
+      <Filter>Archivos de recursos\Shaders</Filter>
+    </None>
+    <None Include="menu.frag">
+      <Filter>Archivos de recursos\Shaders</Filter>
+    </None>
+    <None Include="menu.vs">
       <Filter>Archivos de recursos\Shaders</Filter>
     </None>
   </ItemGroup>
