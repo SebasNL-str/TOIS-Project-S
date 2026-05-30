@@ -306,8 +306,8 @@ int main()
     };
     Skybox skybox(faces);
 
-    bool hitboxDebug = false;
-    bool hitboxC = false;
+    bool hitboxDebug = true;
+    bool hitboxC = true;
 
     Shader skyboxSphereShader("Resources/Shaders/skybox_sphere.vert", "Resources/Shaders/skybox_sphere.frag");
     Shader hitboxShader("Resources/Shaders/hitbox.vert", "Resources/Shaders/hitbox.frag");
@@ -336,7 +336,7 @@ int main()
 
     scene.AddLight({
         LightType::Point,
-        {5.0f, 5.0f, 0.0f},
+        {0.0f, 5.0f, 10.0f},
         {0.0f, -1.0f, 0.0f},
         {1.0f, 1.0f, 1.0f},
         20.0f
