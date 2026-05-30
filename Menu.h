@@ -4,21 +4,18 @@
 #include <algorithm>
 #include <cctype>
 #include <cstddef>
+#include <cstdlib>
 #include <fstream>
 #include <iostream>
 #include <map>
 #include <string>
 #include <vector>
 
-#include <glad/glad.h>
+#include <GL/glew.h>
 #include <glm.hpp>
+#include <SOIL2/SOIL2.h>
 
 #include "Shader.h"
-
-extern "C" unsigned char* stbi_load(char const* filename, int* x, int* y, int* channels_in_file, int desired_channels);
-extern "C" void stbi_image_free(void* retval_from_stbi_load);
-extern "C" void stbi_set_flip_vertically_on_load(int flag_true_if_should_flip);
-extern "C" const char* stbi_failure_reason(void);
 
 struct MenuSettings
 {
@@ -296,7 +293,7 @@ public:
         glEnable(GL_BLEND);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-        shader.use();
+        shader.Use();
     }
 
     void End()
@@ -471,40 +468,17 @@ private:
         int imageHeight = 0;
         int imageChannels = 0;
 
-        stbi_set_flip_vertically_on_load(true);
-        unsigned char* data = stbi_load(settings.backgroundImagePath.c_str(), &imageWidth, &imageHeight, &imageChannels, 0);
-        stbi_set_flip_vertically_on_load(false);
+        unsigned char* data = SOIL_load_image(settings.backgroundImagePath.c_str(), &imageWidth, &imageHeight, &imageChannels, SOIL_LOAD_RGBA);
 
         if (!data)
         {
             std::cout << "MENU::BACKGROUND_IMAGE_LOAD_FAILED: " << settings.backgroundImagePath << std::endl;
-            std::cout << "MENU::STB_REASON: " << (stbi_failure_reason() ? stbi_failure_reason() : "sin detalle") << std::endl;
-            return false;
-        }
-
-        GLenum format = GL_RGB;
-        if (imageChannels == 1)
-        {
-            format = GL_RED;
-        }
-        else if (imageChannels == 3)
-        {
-            format = GL_RGB;
-        }
-        else if (imageChannels == 4)
-        {
-            format = GL_RGBA;
-        }
-        else
-        {
-            std::cout << "MENU::BACKGROUND_IMAGE_UNSUPPORTED_CHANNELS: " << imageChannels << " canales en " << settings.backgroundImagePath << std::endl;
-            stbi_image_free(data);
             return false;
         }
 
         glGenTextures(1, &backgroundTexture);
         glBindTexture(GL_TEXTURE_2D, backgroundTexture);
-        glTexImage2D(GL_TEXTURE_2D, 0, format, imageWidth, imageHeight, 0, format, GL_UNSIGNED_BYTE, data);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, imageWidth, imageHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
         glGenerateMipmap(GL_TEXTURE_2D);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
@@ -512,7 +486,7 @@ private:
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
         glBindTexture(GL_TEXTURE_2D, 0);
 
-        stbi_image_free(data);
+        free(data);
 
         backgroundTextureLoaded = true;
         std::cout << "MENU::BACKGROUND_IMAGE_LOADED: " << settings.backgroundImagePath
@@ -531,7 +505,7 @@ private:
              1.0f,  1.0f, 1.0f, 1.0f
         };
 
-        shader.use();
+        shader.Use();
         glUniform1i(glGetUniformLocation(shader.ID, "useTexture"), GL_TRUE);
         glUniform1i(glGetUniformLocation(shader.ID, "uiTexture"), 0);
 
@@ -574,7 +548,7 @@ private:
             return;
         }
 
-        shader.use();
+        shader.Use();
         glUniform1i(glGetUniformLocation(shader.ID, "useTexture"), GL_FALSE);
         glUniform4f(glGetUniformLocation(shader.ID, "uiColor"), color.r, color.g, color.b, color.a);
 
