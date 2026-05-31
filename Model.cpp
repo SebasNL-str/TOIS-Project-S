@@ -10,6 +10,7 @@
 #include <gtc/matrix_transform.hpp>
 #include <gtc/type_ptr.hpp>
 
+
 // Convierte aiMatrix4x4 a glm::mat4
 glm::mat4 aiToGlm(const aiMatrix4x4& m)
 {
@@ -204,6 +205,10 @@ void Model::processMesh(aiMesh* mesh, const aiScene* scene, glm::mat4 transform)
     std::vector<Vertex> vertices;
     std::vector<unsigned int> indices;
 
+    // 1. Guardamos cuántos vértices globales ya existían ANTES de procesar esta malla.
+    // Esto es crucial para que los índices apunten al lugar correcto.
+    unsigned int vertexOffset = collider.vertices.size();
+
     for (unsigned int i = 0; i < mesh->mNumVertices; i++)
     {
         Vertex v{};
@@ -236,9 +241,25 @@ void Model::processMesh(aiMesh* mesh, const aiScene* scene, glm::mat4 transform)
 
         vertices.push_back(v);
 
-        allVertices.push_back(glm::vec3(v.x, v.y, v.z));
+        // Llenamos el contenedor del collider y el de quickhull con la misma posición
+        glm::vec3 finalPos(v.x, v.y, v.z);
+        collider.vertices.push_back(finalPos);
+        allVertices.push_back(finalPos);
     }
 
+    // 2. Corregimos las caras del collider sumando el 'vertexOffset'
+    for (unsigned int i = 0; i < mesh->mNumFaces; i++) {
+        aiFace face = mesh->mFaces[i];
+        if (face.mNumIndices == 3) { // Triángulo válido
+            collider.faces.push_back(glm::ivec3(
+                face.mIndices[0] + vertexOffset,
+                face.mIndices[1] + vertexOffset,
+                face.mIndices[2] + vertexOffset
+            ));
+        }
+    }
+
+    // Llenado de índices locales de la malla visual (mantienen su flujo local)
     for (unsigned int i = 0; i < mesh->mNumFaces; i++)
     {
         aiFace face = mesh->mFaces[i];
@@ -249,23 +270,20 @@ void Model::processMesh(aiMesh* mesh, const aiScene* scene, glm::mat4 transform)
     aiMaterial* material = scene->mMaterials[mesh->mMaterialIndex];
     aiString pathTex;
 
-    // =========================
-    // DIFUSA (fallback explÃ­cito > material > color difuso > blanco)
-    // =========================
+    // =========================================================================
+    // DIFUSA (fallback explícito > material > color difuso > blanco)
+    // =========================================================================
     GLuint diffuseTex = 0;
 
-    // 1. Si hay fallback explÃ­cito, Ãºsalo siempre
     if (fallbackTexture != 0) {
         diffuseTex = fallbackTexture;
     }
 
-    // 2. Si no hay fallback, intentar cargar la textura difusa del material
     if (diffuseTex == 0 && material &&
         material->GetTexture(aiTextureType_DIFFUSE, 0, &pathTex) == AI_SUCCESS) {
         diffuseTex = loadTexture(resolveTexturePath(pathTex.C_Str()));
     }
 
-    // 3. Si tampoco hay textura, intentar leer el color difuso
     if (diffuseTex == 0) {
         aiColor3D color(0.0f, 0.0f, 0.0f);
         if (AI_SUCCESS == material->Get(AI_MATKEY_COLOR_DIFFUSE, color)) {
@@ -281,7 +299,6 @@ void Model::processMesh(aiMesh* mesh, const aiScene* scene, glm::mat4 transform)
         }
     }
 
-    // 4. Ãšltima alternativa: blanco
     if (diffuseTex == 0) {
         unsigned char white[3] = { 255, 255, 255 };
         glGenTextures(1, &diffuseTex);
@@ -290,24 +307,25 @@ void Model::processMesh(aiMesh* mesh, const aiScene* scene, glm::mat4 transform)
             GL_RGB, GL_UNSIGNED_BYTE, white);
     }
 
-    // =========================
+    // =========================================================================
     // ROUGHNESS
-    // =========================
+    // =========================================================================
     GLuint roughnessTex = 0;
     if (material->GetTexture(aiTextureType_DIFFUSE_ROUGHNESS, 0, &pathTex) == AI_SUCCESS) {
         roughnessTex = loadTexture(resolveTexturePath(pathTex.C_Str()));
     }
 
-    // =========================
+    // =========================================================================
     // METALLIC
-    // =========================
+    // =========================================================================
     GLuint metallicTex = 0;
     if (material->GetTexture(aiTextureType_METALNESS, 0, &pathTex) == AI_SUCCESS) {
         metallicTex = loadTexture(resolveTexturePath(pathTex.C_Str()));
     }
 
-    // =========================
-    // CREAR MESH
-    // =========================
+    // =========================================================================
+    // CREAR MESH VISUAL
+    // =========================================================================
     meshes.emplace_back(vertices, indices, diffuseTex, roughnessTex, metallicTex);
 }
+

@@ -15,9 +15,12 @@ public:
 
     // Dibujar el modelo completo
     void Draw();
-    BoundingBox hitbox;
-    std::vector<glm::vec3> allVertices;
 
+    // Hitboxes
+    BoundingBox hitbox;              // AABB
+    ConvexHull hull;                 // Convex Hull
+    std::vector<glm::vec3> allVertices; // todos los vértices del modelo
+    MeshCollider collider;
 
 private:
     // Lista de mallas

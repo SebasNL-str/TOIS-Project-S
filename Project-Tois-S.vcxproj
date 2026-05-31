@@ -43,14 +43,14 @@
     <ClCompile Include="Skybox.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="menu.frag" />
-    <None Include="menu.vs" />
     <None Include="Resources\Shaders\default.frag" />
     <None Include="Resources\Shaders\default.vert" />
     <None Include="Resources\Shaders\emissive.frag" />
     <None Include="Resources\Shaders\emissive.vert" />
     <None Include="Resources\Shaders\hitbox.frag" />
     <None Include="Resources\Shaders\hitbox.vert" />
+    <None Include="Resources\Shaders\menu.frag" />
+    <None Include="Resources\Shaders\menu.vs" />
     <None Include="Resources\Shaders\skybox.frag" />
     <None Include="Resources\Shaders\skybox.vert" />
     <None Include="Resources\Shaders\skybox_sphere.frag" />

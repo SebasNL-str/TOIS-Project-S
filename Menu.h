@@ -50,7 +50,7 @@ class MenuRenderer
 {
 public:
     MenuRenderer() :
-        shader("menu.vs", "menu.frag"),
+        shader("Resources/Shaders/menu.vs", "Resources/Shaders/menu.frag"),
         VAO(0),
         VBO(0),
         backgroundVAO(0),

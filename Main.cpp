@@ -296,12 +296,12 @@ int main()
     SoundManager sound("Resources/Sound/ambient.wav");
     SetMenuOpen(window, menu, sound, true);
 
-    Shader shader("default.vert", "default.frag");
+    Shader shader("Resources/Shaders/default.vert", "Resources/Shaders/default.frag");
     shader.Use();
     shader.SetInt("texture1", 0);
 
     // Crear skybox
-    Shader skyboxShader("skybox.vert", "skybox.frag");
+    Shader skyboxShader("Resources/Shaders/skybox.vert", "Resources/Shaders/skybox.frag");
     skyboxShader.Use();
     skyboxShader.SetInt("skybox", 0);
 
@@ -316,7 +316,8 @@ int main()
     Skybox skybox(faces);
 
     bool hitboxDebug = false;
-    bool hitboxC = false;
+    bool hullDebug = true;
+    bool hitboxC = true;
     bool flashlightEnabled = true;
 
     Shader skyboxSphereShader("Resources/Shaders/skybox_sphere.vert", "Resources/Shaders/skybox_sphere.frag");
@@ -408,9 +409,10 @@ int main()
                 flashlightEnabled ? 18.0f : 0.0f
                 });
 
+            /*
             if (hitboxC)
             {
-                CameraCollider camCollider{ newPos, 0.2f };
+                CameraCollider camCollider{ newPos, 1.0f };
                 bool blocked = false;
                 for (auto& obj : scene.GetObjects())
                 {
@@ -427,7 +429,29 @@ int main()
                 {
                     camera.ForcePosition(oldPos);
                 }
+            }*/
+            if (hitboxC)
+            {
+                CameraCollider camCollider{ newPos, 1.0f };
+                bool blocked = false;
+                for (auto& obj : scene.GetObjects())
+                {
+                    if (CheckCollisionSphereMesh(camCollider.position,
+                        camCollider.radius,
+                        obj.model->collider,
+                        obj.GetModelMatrix()))
+                    {
+                        blocked = true;
+                        break;
+                    }
+                }
+
+                if (blocked)
+                {
+                    camera.ForcePosition(oldPos);
+                }
             }
+
         }
 
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -462,7 +486,7 @@ int main()
         shader.SetFloat("spotOuterCutOff", glm::cos(glm::radians(17.5f)));
 
         scene.Draw(shader, emissiveShader, camera);
-
+        /*
         if (hitboxDebug)
         {
             hitboxShader.Use();
@@ -473,6 +497,28 @@ int main()
                     0.1f,
                     100.0f));
         }
+        */
+        if (hitboxDebug) // flag para activar visualización del convex hull
+        {
+            hitboxShader.Use();
+            glm::mat4 projection = glm::perspective(glm::radians(camera.GetZoom()),
+                static_cast<float>(framebufferWidth) / static_cast<float>(framebufferHeight),
+                0.1f,
+                100.0f);
+
+            for (auto& obj : scene.GetObjects())
+            {
+                glm::mat4 modelMatrix = obj.GetModelMatrix();
+                DrawMeshCollider(obj.model->collider,
+                    hitboxShader,
+                    obj.GetModelMatrix(),
+                    camera.GetViewMatrix(),
+                    projection,
+                    glm::vec3(1.0f, 0.0f, 0.0f)); // rojo
+
+            }
+        }
+
 
         glfwSwapBuffers(window);
     }
