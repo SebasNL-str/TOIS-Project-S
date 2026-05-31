@@ -3,17 +3,19 @@
 #include <memory>
 #include <vector>
 
-#define GLEW_STATIC
-#include <GL/glew.h>
-#include <GLFW/glfw3.h>
 
 #include "Skybox.h"
 #include "Camera.h"
 #include "Mesh.h"
 #include "Shader.h"
-#include "Scene.h"
 #include "Menu.h"
+#include "WindowManager.h"
+#include "MenuController.h"
+#include "InputHandler.h"
+#include "Utils.h"
+#include "Scene.h"
 #include "SoundManager.h"
+
 
 const int SCREEN_WIDTH = 1000;
 const int SCREEN_HEIGHT = 800;
@@ -28,287 +30,23 @@ bool firstMouse = true;
 float lastX = SCREEN_WIDTH * 0.5f;
 float lastY = SCREEN_HEIGHT * 0.5f;
 
-enum class MenuScreen
-{
-    Main,
-    Settings
-};
-
 MenuScreen currentMenuScreen = MenuScreen::Main;
-
-bool FileExists(const std::string& path)
-{
-    std::ifstream file(path.c_str(), std::ios::binary);
-    return file.good();
-}
-
-void ShowMainMenu(MenuRenderer& menu)
-{
-    currentMenuScreen = MenuScreen::Main;
-    menu.SetTitle("T.O.I.S: PROJECT S");
-    menu.SetSubtitle("MAIN MENU");
-    menu.SetFooter("ESC: MENU  ENTER: SELECT");
-    menu.SetItems({
-        gameStarted ? "CONTINUE" : "START TOUR",
-        "SETTINGS",
-        "EXIT"
-        });
-    menu.SetSelectedIndex(0);
-}
-
-void ShowSettingsMenu(MenuRenderer& menu, const SoundManager& sound, bool hitboxDebug)
-{
-    currentMenuScreen = MenuScreen::Settings;
-    menu.SetTitle("SETTINGS");
-    menu.SetSubtitle("SETTINGS");
-    menu.SetFooter("ENTER: SWITCH  ESC: BACK");
-    menu.SetItems({
-        sound.IsAmbientEnabled() ? "AUDIO: ON" : "AUDIO: OFF",
-        hitboxDebug ? "HITBOX: ON" : "HITBOX: OFF",
-        "BACK"
-        });
-}
-
-void SetMenuOpen(GLFWwindow* window, MenuRenderer& menu, SoundManager& sound, bool open)
-{
-    menuOpen = open;
-    menu.SetVisible(open);
-    firstMouse = true;
-
-    if (open)
-    {
-        ShowMainMenu(menu);
-        glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
-        sound.StopAmbient();
-    }
-    else
-    {
-        glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-        if (gameStarted)
-        {
-            sound.PlayAmbientIfEnabled();
-        }
-    }
-}
-
-void processGameplayInput(GLFWwindow* window, bool& flashlightEnabled)
-{
-    static bool fWasPressed = false;
-
-    if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-        camera.ProcessKeyboard(FORWARD, deltaTime);
-
-    if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-        camera.ProcessKeyboard(BACKWARD, deltaTime);
-
-    if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-        camera.ProcessKeyboard(LEFT, deltaTime);
-
-    if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-        camera.ProcessKeyboard(RIGHT, deltaTime);
-
-    bool fPressed = glfwGetKey(window, GLFW_KEY_F) == GLFW_PRESS;
-    if (fPressed && !fWasPressed)
-    {
-        flashlightEnabled = !flashlightEnabled;
-    }
-    fWasPressed = fPressed;
-}
-
-void processMenuInput(GLFWwindow* window, MenuRenderer& menu, SoundManager& sound, bool& hitboxDebug)
-{
-    static bool escWasPressed = false;
-    static bool upWasPressed = false;
-    static bool downWasPressed = false;
-    static bool enterWasPressed = false;
-
-    bool escPressed = glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS;
-    if (escPressed && !escWasPressed)
-    {
-        if (menuOpen && currentMenuScreen == MenuScreen::Settings)
-        {
-            ShowMainMenu(menu);
-        }
-        else if (gameStarted)
-        {
-            SetMenuOpen(window, menu, sound, !menuOpen);
-        }
-        else
-        {
-            SetMenuOpen(window, menu, sound, true);
-        }
-    }
-    escWasPressed = escPressed;
-
-    if (!menuOpen)
-    {
-        return;
-    }
-
-    bool upPressed =
-        glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS ||
-        glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS;
-
-    bool downPressed =
-        glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS ||
-        glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS;
-
-    bool enterPressed =
-        glfwGetKey(window, GLFW_KEY_ENTER) == GLFW_PRESS ||
-        glfwGetKey(window, GLFW_KEY_KP_ENTER) == GLFW_PRESS ||
-        glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS;
-
-    if (upPressed && !upWasPressed)
-    {
-        menu.MoveSelection(-1);
-    }
-
-    if (downPressed && !downWasPressed)
-    {
-        menu.MoveSelection(1);
-    }
-
-    if (enterPressed && !enterWasPressed)
-    {
-        if (currentMenuScreen == MenuScreen::Main)
-        {
-            switch (menu.GetSelectedIndex())
-            {
-            case 0:
-                gameStarted = true;
-                SetMenuOpen(window, menu, sound, false);
-                break;
-            case 1:
-                ShowSettingsMenu(menu, sound, hitboxDebug);
-                menu.SetSelectedIndex(0);
-                break;
-            case 2:
-                glfwSetWindowShouldClose(window, true);
-                break;
-            default:
-                break;
-            }
-        }
-        else if (currentMenuScreen == MenuScreen::Settings)
-        {
-            int selectedIndex = menu.GetSelectedIndex();
-            switch (selectedIndex)
-            {
-            case 0:
-                sound.ToggleAmbient();
-                ShowSettingsMenu(menu, sound, hitboxDebug);
-                menu.SetSelectedIndex(selectedIndex);
-                break;
-            case 1:
-                hitboxDebug = !hitboxDebug;
-                ShowSettingsMenu(menu, sound, hitboxDebug);
-                menu.SetSelectedIndex(selectedIndex);
-                break;
-            case 2:
-                ShowMainMenu(menu);
-                break;
-            default:
-                break;
-            }
-        }
-    }
-
-    upWasPressed = upPressed;
-    downWasPressed = downPressed;
-    enterWasPressed = enterPressed;
-}
-
-void mouse_callback(GLFWwindow* window, double xpos, double ypos)
-{
-    if (menuOpen || !gameStarted)
-    {
-        firstMouse = true;
-        return;
-    }
-
-    if (firstMouse)
-    {
-        lastX = static_cast<float>(xpos);
-        lastY = static_cast<float>(ypos);
-        firstMouse = false;
-    }
-
-    float xoffset = static_cast<float>(xpos) - lastX;
-    float yoffset = lastY - static_cast<float>(ypos);
-
-    lastX = static_cast<float>(xpos);
-    lastY = static_cast<float>(ypos);
-
-    camera.ProcessMouseMovement(xoffset, yoffset);
-}
 
 int main()
 {
-    // =========================
-    // GLFW
-    // =========================
-    glfwInit();
+    // ==========================================
+    // INICIALIZACIÃ“N DE VENTANA Y ESTADOS (VÃ­a WindowManager)
+    // ==========================================
+    int widthR, heightR;
+    GLFWwindow* window = InitWindow(widthR, heightR, "T.O.I.S: Project S");
+    if (!window) return -1;
 
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+    LoadWindowIcon(window, "Resources/Icons/TOISS.png");
 
-    // 1. Obtener el monitor principal
-    GLFWmonitor* primaryMonitor = glfwGetPrimaryMonitor();
-
-    // 2. Obtener el modo de video actual del monitor (resolución)
-    const GLFWvidmode* mode = glfwGetVideoMode(primaryMonitor);
-
-    int widthR = mode->width;
-    int heightR = mode->height;
-
-    GLFWwindow* window = glfwCreateWindow(widthR, heightR, "T.O.I.S: Project S", NULL, NULL);
-    if (!window)
-    {
-        std::cout << "Error creando ventana\n";
-        glfwTerminate();
-        return -1;
-    }
-
-    // Después de crear la ventana con glfwCreateWindow(...)
-    int width, height, channels;
-    unsigned char* pixels = SOIL_load_image("Resources/Icons/TOISS.png", &width, &height, &channels, SOIL_LOAD_RGBA);
-
-    if (pixels) {
-        GLFWimage images[1];
-        images[0].width = width;
-        images[0].height = height;
-        images[0].pixels = pixels;
-
-        glfwSetWindowIcon(window, 1, images);
-
-        free(pixels);
-    }
-    else {
-        std::cout << "Error cargando icono con SOIL2\n";
-    }
-
-    glfwMakeContextCurrent(window);
     glfwSetCursorPosCallback(window, mouse_callback);
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
 
-    // =========================
-    // GLEW
-    // =========================
-    glewExperimental = GL_TRUE;
-    if (glewInit() != GLEW_OK)
-    {
-        std::cout << "Error inicializando GLEW\n";
-        return -1;
-    }
-
-    // =========================
-    // OPENGL STATE
-    // =========================
-    glEnable(GL_DEPTH_TEST);
-    glDepthFunc(GL_LESS);
-    glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    if (!InitOpenGLState()) return -1;
 
     // =========================
     // CORE SYSTEMS
@@ -338,7 +76,7 @@ int main()
         "Resources/Skybox/Cubemaps/Night/py.png", // py - top
         "Resources/Skybox/Cubemaps/Night/ny.png", // ny - bottom
         "Resources/Skybox/Cubemaps/Night/pz.png", // pz - front
-        "Resources/Skybox/Cubemaps/Night/nz.png" // nz - back
+        "Resources/Skybox/Cubemaps/Night/nz.png"  // nz - back
     };
     Skybox skybox(faces);
 
@@ -363,7 +101,7 @@ int main()
     // SCENE OBJECTS
     // =========================
     auto sphere = std::make_shared<Model>("Resources/Models/OBJ/sphere.obj");
-    
+
     if (FileExists("Resources/Models/OBJ/Sphere.obj"))
     {
         scene.SetLightSphere(sphere);
@@ -373,7 +111,6 @@ int main()
         scene.SetLightSphere(nullptr);
     }
 
-
     scene.AddLight({
         LightType::Point,
         {5.0f, 25.0f, 50.0f},
@@ -382,8 +119,6 @@ int main()
         10.0f,
         true
         });
-
-
 
     std::size_t flashlightLightIndex = scene.GetLightCount();
     scene.AddLight({
@@ -401,9 +136,10 @@ int main()
         {0.8f, 0.8f, 0.8f}
         });
 
+    // APARTADO COLLIDERS (SIN TOCAR)
     for (auto& obj : scene.GetObjects())
     {
-        // Pasamos el collider de cada modelo a la función que crea el VAO
+        // Pasamos el collider de cada modelo a la funciÃ³n que crea el VAO
         SetupMeshCollider(obj.model->collider);
     }
 
@@ -442,6 +178,7 @@ int main()
                 flashlightEnabled ? 18.0f : 0.0f
                 });
 
+            // APARTADO COLLIDERS (SIN TOCAR)
             /*
             if (hitboxC)
             {
@@ -484,7 +221,6 @@ int main()
                     camera.ForcePosition(oldPos);
                 }
             }
-
         }
 
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -519,6 +255,8 @@ int main()
         shader.SetFloat("spotOuterCutOff", glm::cos(glm::radians(17.5f)));
 
         scene.Draw(shader, emissiveShader, camera);
+
+        // APARTADO COLLIDERS (SIN TOCAR)
         /*
         if (hitboxDebug)
         {
@@ -531,7 +269,7 @@ int main()
                     100.0f));
         }
         */
-        if (hitboxDebug) // flag para activar visualización del convex hull
+        if (hitboxDebug) // flag para activar visualizaciÃ³n del convex hull
         {
             hitboxShader.Use();
             glm::mat4 projection = glm::perspective(glm::radians(camera.GetZoom()),
@@ -548,10 +286,8 @@ int main()
                     camera.GetViewMatrix(),
                     projection,
                     glm::vec3(1.0f, 0.0f, 0.0f)); // rojo
-
             }
         }
-
 
         glfwSwapBuffers(window);
     }
