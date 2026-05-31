@@ -374,6 +374,12 @@ int main()
         {0.8f, 0.8f, 0.8f}
         });
 
+    for (auto& obj : scene.GetObjects())
+    {
+        // Pasamos el collider de cada modelo a la función que crea el VAO
+        SetupMeshCollider(obj.model->collider);
+    }
+
     while (!glfwWindowShouldClose(window))
     {
         int framebufferWidth = SCREEN_WIDTH;
@@ -432,7 +438,7 @@ int main()
             }*/
             if (hitboxC)
             {
-                CameraCollider camCollider{ newPos, 1.0f };
+                CameraCollider camCollider{ newPos, 0.8f };
                 bool blocked = false;
                 for (auto& obj : scene.GetObjects())
                 {

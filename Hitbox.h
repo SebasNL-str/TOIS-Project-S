@@ -24,12 +24,20 @@ struct MeshCollider {
     std::vector<glm::vec3> vertices;
     std::vector<glm::ivec3> faces;
 
-    // Buffers persistentes
-    GLuint VAO = 0;
-    GLuint VBO = 0;
-    GLuint EBO = 0;
-    GLsizei indexCount = 0;
+    // Variables de OpenGL existentes...
+    unsigned int VAO = 0, VBO = 0, EBO = 0, indexCount = 0;
+
+    // NUEVO: Caja contenedora (AABB)
+    glm::vec3 minAABB{ FLT_MAX };
+    glm::vec3 maxAABB{ -FLT_MAX };
+
+    // NUEVO: Buffers exclusivos para dibujar el cubo de la AABB
+    unsigned int aabbVAO = 0;
+    unsigned int aabbVBO = 0;
+    unsigned int aabbEBO = 0;
 };
+
+
 
 
 
@@ -75,3 +83,12 @@ bool PointInTriangle(const glm::vec3& p,
     const glm::vec3& a,
     const glm::vec3& b,
     const glm::vec3& c);
+
+void SetupMeshCollider(MeshCollider& mesh);
+
+void DrawAABBCollider(const MeshCollider& mesh,
+    Shader& shader,
+    const glm::mat4& model,
+    const glm::mat4& view,
+    const glm::mat4& projection,
+    const glm::vec3& color);

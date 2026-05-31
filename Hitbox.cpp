@@ -131,8 +131,8 @@ void DrawMeshCollider(const MeshCollider& mesh,
     const glm::mat4& projection,
     const glm::vec3& color)
 {
-    if (mesh.vertices.empty() || mesh.faces.empty())
-        return; // nada que dibujar
+    // Si no se ha inicializado el VAO, salimos de inmediato
+    if (mesh.VAO == 0 || mesh.indexCount == 0) return;
 
     shader.Use();
     shader.SetMat4("model", model);
@@ -140,53 +140,16 @@ void DrawMeshCollider(const MeshCollider& mesh,
     shader.SetMat4("projection", projection);
     shader.SetVec3("color", color);
 
-    // Convertir faces (ivec3) a un vector plano de índices
-    std::vector<unsigned int> indices;
-    indices.reserve(mesh.faces.size() * 3);
-    for (const auto& f : mesh.faces) {
-        indices.push_back(static_cast<unsigned int>(f.x));
-        indices.push_back(static_cast<unsigned int>(f.y));
-        indices.push_back(static_cast<unsigned int>(f.z));
-    }
+    // Dibujar utilizando el VAO guardado en memoria
+    glBindVertexArray(mesh.VAO);
 
-    // Preparar buffers temporales
-    GLuint VAO, VBO, EBO;
-    glGenVertexArrays(1, &VAO);
-    glGenBuffers(1, &VBO);
-    glGenBuffers(1, &EBO);
-
-    glBindVertexArray(VAO);
-
-    glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    glBufferData(GL_ARRAY_BUFFER,
-        mesh.vertices.size() * sizeof(glm::vec3),
-        mesh.vertices.data(),
-        GL_STATIC_DRAW);
-
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER,
-        indices.size() * sizeof(unsigned int),
-        indices.data(),
-        GL_STATIC_DRAW);
-
-    glEnableVertexAttribArray(0);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE,
-        sizeof(glm::vec3), (void*)0);
-
-    // Dibujar en wireframe
-    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-    glDrawElements(GL_TRIANGLES,
-        static_cast<GLsizei>(indices.size()),
-        GL_UNSIGNED_INT,
-        0);
-    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); // Modo Wireframe
+    glDrawElements(GL_TRIANGLES, mesh.indexCount, GL_UNSIGNED_INT, 0);
+    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL); // Restaurar modo sólido
 
     glBindVertexArray(0);
-
-    glDeleteVertexArrays(1, &VAO);
-    glDeleteBuffers(1, &VBO);
-    glDeleteBuffers(1, &EBO);
 }
+
 
 bool PointInTriangle(const glm::vec3& p,
     const glm::vec3& a,
@@ -228,17 +191,113 @@ bool CheckCollisionSphereMesh(const glm::vec3& center, float radius,
     const MeshCollider& mesh,
     const glm::mat4& modelMatrix)
 {
-    for (const auto& face : mesh.faces) {
-        glm::vec3 a = glm::vec3(modelMatrix * glm::vec4(mesh.vertices[face.x], 1.0f));
-        glm::vec3 b = glm::vec3(modelMatrix * glm::vec4(mesh.vertices[face.y], 1.0f));
-        glm::vec3 c = glm::vec3(modelMatrix * glm::vec4(mesh.vertices[face.z], 1.0f));
+    // 1. Convertir el centro de la esfera (Cámara) al espacio local del objeto
+    // Esto nos permite evitar transformar miles de vértices por frame
+    glm::mat4 inverseModel = glm::inverse(modelMatrix);
+    glm::vec3 localCenter = glm::vec3(inverseModel * glm::vec4(center, 1.0f));
 
-        if (CheckCollisionSphereTriangle(center, radius, a, b, c)) {
-            return true;
+    // 2. FILTRO RÁPIDO: Verificación Esfera vs Caja Contenedora (AABB)
+    // Encuentra el punto más cercano de la caja a la esfera
+    float closureX = glm::max(mesh.minAABB.x, glm::min(localCenter.x, mesh.maxAABB.x));
+    float closureY = glm::max(mesh.minAABB.y, glm::min(localCenter.y, mesh.maxAABB.y));
+    float closureZ = glm::max(mesh.minAABB.z, glm::min(localCenter.z, mesh.maxAABB.z));
+
+    // Calcula la distancia al cuadrado entre ese punto y el centro de la esfera
+    float distanceSq = ((closureX - localCenter.x) * (closureX - localCenter.x)) +
+        ((closureY - localCenter.y) * (closureY - localCenter.y)) +
+        ((closureZ - localCenter.z) * (closureZ - localCenter.z));
+
+    // Si la distancia es mayor que el radio al cuadrado, NO HAY COLISIÓN. Omitimos la malla.
+    if (distanceSq > (radius * radius)) {
+        return false;
+    }
+
+    // 3. FASE ESTRECHA: Si la esfera está tocando la caja, revisamos los triángulos
+    // Como trabajamos en espacio local, ya NO multiplicamos por 'modelMatrix' aquí dentro
+    for (const auto& face : mesh.faces) {
+        const glm::vec3& a = mesh.vertices[face.x];
+        const glm::vec3& b = mesh.vertices[face.y];
+        const glm::vec3& c = mesh.vertices[face.z];
+
+        if (CheckCollisionSphereTriangle(localCenter, radius, a, b, c)) {
+            return true; // Colisión real detectada
         }
     }
     return false;
 }
+
+
+void SetupMeshCollider(MeshCollider& mesh)
+{
+    // Si no hay datos cargados en la CPU, salimos para evitar errores de OpenGL
+    if (mesh.vertices.empty() || mesh.faces.empty()) return;
+
+    // 1. Convertir caras (ivec3) a un vector plano de índices
+    std::vector<unsigned int> indices;
+    indices.reserve(mesh.faces.size() * 3);
+    for (const auto& f : mesh.faces) {
+        indices.push_back(static_cast<unsigned int>(f.x));
+        indices.push_back(static_cast<unsigned int>(f.y));
+        indices.push_back(static_cast<unsigned int>(f.z));
+    }
+    mesh.indexCount = static_cast<unsigned int>(indices.size());
+
+    // 2. Generar buffers en la GPU
+    glGenVertexArrays(1, &mesh.VAO);
+    glGenBuffers(1, &mesh.VBO);
+    glGenBuffers(1, &mesh.EBO);
+
+    // 3. Enlazar y rellenar Vertex Array Object
+    glBindVertexArray(mesh.VAO);
+
+    // VBO: Subir vértices (Cada elemento es un glm::vec3 puro)
+    glBindBuffer(GL_ARRAY_BUFFER, mesh.VBO);
+    glBufferData(GL_ARRAY_BUFFER,
+        mesh.vertices.size() * sizeof(glm::vec3),
+        mesh.vertices.data(),
+        GL_STATIC_DRAW);
+
+    // EBO: Subir los índices de los triángulos
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh.EBO);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER,
+        indices.size() * sizeof(unsigned int),
+        indices.data(),
+        GL_STATIC_DRAW);
+
+    // 4. Configurar atributos de vértices (Atributo 0 = Posición)
+    // El stride ahora es exactamente sizeof(glm::vec3) porque no hay normales ni UVs aquí
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(glm::vec3), (void*)0);
+
+    // Desenlazar para proteger el estado de OpenGL
+    glBindVertexArray(0);
+}
+
+
+void DrawAABBCollider(const MeshCollider& mesh,
+    Shader& shader,
+    const glm::mat4& model,
+    const glm::mat4& view,
+    const glm::mat4& projection,
+    const glm::vec3& color)
+{
+    if (mesh.aabbVAO == 0) return;
+
+    shader.Use();
+    shader.SetMat4("model", model);
+    shader.SetMat4("view", view);
+    shader.SetMat4("projection", projection);
+    shader.SetVec3("color", color);
+
+    glBindVertexArray(mesh.aabbVAO);
+
+    // Dibujamos líneas directas para ver la caja contenedora
+    glDrawElements(GL_LINES, 24, GL_UNSIGNED_INT, 0);
+
+    glBindVertexArray(0);
+}
+
+
 
 
 

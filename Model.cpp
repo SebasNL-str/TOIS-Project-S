@@ -245,6 +245,10 @@ void Model::processMesh(aiMesh* mesh, const aiScene* scene, glm::mat4 transform)
         glm::vec3 finalPos(v.x, v.y, v.z);
         collider.vertices.push_back(finalPos);
         allVertices.push_back(finalPos);
+
+        // NUEVO: Calcular los extremos de la caja contenedora
+        collider.minAABB = glm::min(collider.minAABB, finalPos);
+        collider.maxAABB = glm::max(collider.maxAABB, finalPos);
     }
 
     // 2. Corregimos las caras del collider sumando el 'vertexOffset'

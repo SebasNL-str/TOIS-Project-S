@@ -1,10 +1,2 @@
 ﻿  Hitbox.cpp
-  Main.cpp
-  Mesh.cpp
-  Model.cpp
-C:\Users\DELL\source\repos\TOIS-Project-S\Model.cpp(210,31): warning C4267: 'inicializando': conversión de 'size_t' a 'unsigned int'; posible pérdida de datos
-  Scene.cpp
-  Shader.cpp
-  Skybox.cpp
-  Generando código...
   Project-Tois-S.vcxproj -> C:\Users\DELL\Source\Repos\TOIS-Project-S\x64\Debug\Project-Tois-S.exe
