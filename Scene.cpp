@@ -71,7 +71,6 @@ void Scene::Draw(Shader& shader, Shader& emissiveShader, Camera& camera)
     // VIEW / PROJECTION
     // =========================
     glm::mat4 view = camera.GetViewMatrix();
-
     glm::mat4 projection = glm::perspective(
         glm::radians(camera.GetZoom()),
         800.0f / 600.0f,
@@ -83,10 +82,8 @@ void Scene::Draw(Shader& shader, Shader& emissiveShader, Camera& camera)
     // SHADER PRINCIPAL (ILUMINACIÓN)
     // =========================
     shader.Use();
-
     shader.SetMat4("view", view);
     shader.SetMat4("projection", projection);
-
     shader.SetVec3("viewPos", camera.GetPosition());
 
     // =========================
@@ -101,7 +98,6 @@ void Scene::Draw(Shader& shader, Shader& emissiveShader, Camera& camera)
     for (int i = 0; i < lightCount; i++)
     {
         const Light& light = lights[i];
-
         std::string base = "lights[" + std::to_string(i) + "].";
 
         shader.SetInt(base + "type", (int)light.type);
@@ -117,17 +113,14 @@ void Scene::Draw(Shader& shader, Shader& emissiveShader, Camera& camera)
     for (auto& obj : objects)
     {
         glm::mat4 modelMat = glm::mat4(1.0f);
-
         modelMat = glm::translate(modelMat, obj.transform.position);
 
         modelMat = glm::rotate(modelMat,
             glm::radians(obj.transform.rotation.x),
             glm::vec3(1, 0, 0));
-
         modelMat = glm::rotate(modelMat,
             glm::radians(obj.transform.rotation.y),
             glm::vec3(0, 1, 0));
-
         modelMat = glm::rotate(modelMat,
             glm::radians(obj.transform.rotation.z),
             glm::vec3(0, 0, 1));
@@ -135,35 +128,30 @@ void Scene::Draw(Shader& shader, Shader& emissiveShader, Camera& camera)
         modelMat = glm::scale(modelMat, obj.transform.scale);
 
         shader.SetMat4("model", modelMat);
-
         obj.model->Draw();
-
     }
 
     // =========================
     // LIGHT VISUALIZATION (EMISSIVE SPHERES)
     // =========================
     emissiveShader.Use();
-
     emissiveShader.SetMat4("view", view);
     emissiveShader.SetMat4("projection", projection);
 
-
-
     for (const Light& light : lights)
     {
-        glm::mat4 modelMat = glm::mat4(1.0f);
-
-        modelMat = glm::translate(modelMat, light.position);
-        modelMat = glm::scale(modelMat, glm::vec3(0.2f));
-
-        emissiveShader.SetMat4("model", modelMat);
-        emissiveShader.SetVec3("emissiveColor", light.color);
-        emissiveShader.SetFloat("intensity", light.intensity);
-
-        if (lightSphere)
+        if (lightSphere && light.drawSphere) // <- nuevo control por luz
         {
+            glm::mat4 modelMat = glm::mat4(1.0f);
+            modelMat = glm::translate(modelMat, light.position);
+            modelMat = glm::scale(modelMat, glm::vec3(0.2f));
+
+            emissiveShader.SetMat4("model", modelMat);
+            emissiveShader.SetVec3("emissiveColor", light.color);
+            emissiveShader.SetFloat("intensity", light.intensity);
+
             lightSphere->Draw();
         }
     }
 }
+

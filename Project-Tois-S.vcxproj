@@ -31,11 +31,9 @@
     <ClInclude Include="ShadingModel.h" />
     <ClInclude Include="Skybox.h" />
     <ClInclude Include="SoundManager.h" />
-    <ClInclude Include="Texture.h" />
     <ClInclude Include="Transform.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="glad.c" />
     <ClCompile Include="Hitbox.cpp" />
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="Mesh.cpp" />

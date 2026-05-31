@@ -45,13 +45,13 @@ bool FileExists(const std::string& path)
 void ShowMainMenu(MenuRenderer& menu)
 {
     currentMenuScreen = MenuScreen::Main;
-    menu.SetTitle("TOIS PROJECT S");
-    menu.SetSubtitle("MENU PRINCIPAL");
-    menu.SetFooter("ESC: MENU  ENTER: SELECCIONAR");
+    menu.SetTitle("T.O.I.S: PROJECT S");
+    menu.SetSubtitle("MAIN MENU");
+    menu.SetFooter("ESC: MENU  ENTER: SELECT");
     menu.SetItems({
-        gameStarted ? "CONTINUAR" : "JUGAR",
-        "CONFIGURACIONES",
-        "SALIR"
+        gameStarted ? "CONTINUE" : "START TOUR",
+        "SETTINGS",
+        "EXIT"
         });
     menu.SetSelectedIndex(0);
 }
@@ -59,13 +59,13 @@ void ShowMainMenu(MenuRenderer& menu)
 void ShowSettingsMenu(MenuRenderer& menu, const SoundManager& sound, bool hitboxDebug)
 {
     currentMenuScreen = MenuScreen::Settings;
-    menu.SetTitle("CONFIGURACIONES");
-    menu.SetSubtitle("AJUSTES");
-    menu.SetFooter("ENTER: CAMBIAR  ESC: VOLVER");
+    menu.SetTitle("SETTINGS");
+    menu.SetSubtitle("SETTINGS");
+    menu.SetFooter("ENTER: SWITCH  ESC: BACK");
     menu.SetItems({
-        sound.IsAmbientEnabled() ? "AUDIO: ACTIVADO" : "AUDIO: DESACTIVADO",
-        hitboxDebug ? "HITBOX: ACTIVADO" : "HITBOX: DESACTIVADO",
-        "VOLVER"
+        sound.IsAmbientEnabled() ? "AUDIO: ON" : "AUDIO: OFF",
+        hitboxDebug ? "HITBOX: ON" : "HITBOX: OFF",
+        "BACK"
         });
 }
 
@@ -306,12 +306,12 @@ int main()
     skyboxShader.SetInt("skybox", 0);
 
     std::vector<std::string> faces = {
-        "Resources/Skybox/Cubemaps/Day/cara_1.png", // px - right
-        "Resources/Skybox/Cubemaps/Day/cara_2.png", // nx - left
-        "Resources/Skybox/Cubemaps/Day/cara_3.png", // py - top
-        "Resources/Skybox/Cubemaps/Day/cara_4.png", // ny - bottom
-        "Resources/Skybox/Cubemaps/Day/cara_5.png", // pz - front
-        "Resources/Skybox/Cubemaps/Day/cara_6.png" // nz - back
+        "Resources/Skybox/Cubemaps/Night/px.png", // px - right
+        "Resources/Skybox/Cubemaps/Night/nx.png", // nx - left
+        "Resources/Skybox/Cubemaps/Night/py.png", // py - top
+        "Resources/Skybox/Cubemaps/Night/ny.png", // ny - bottom
+        "Resources/Skybox/Cubemaps/Night/pz.png", // pz - front
+        "Resources/Skybox/Cubemaps/Night/nz.png" // nz - back
     };
     Skybox skybox(faces);
 
@@ -334,9 +334,10 @@ int main()
     // =========================
     // SCENE OBJECTS
     // =========================
+    auto sphere = std::make_shared<Model>("Resources/Models/OBJ/sphere.obj");
+    
     if (FileExists("Resources/Models/OBJ/Sphere.obj"))
     {
-        auto sphere = std::make_shared<Model>("Resources/Models/OBJ/Sphere.obj");
         scene.SetLightSphere(sphere);
     }
     else
@@ -344,13 +345,17 @@ int main()
         scene.SetLightSphere(nullptr);
     }
 
+
     scene.AddLight({
         LightType::Point,
-        {5.0f, 5.0f, 0.0f},
+        {5.0f, 25.0f, 50.0f},
         {0.0f, -1.0f, 0.0f},
         {1.0f, 1.0f, 1.0f},
-        50.0f
+        10.0f,
+        true
         });
+
+
 
     std::size_t flashlightLightIndex = scene.GetLightCount();
     scene.AddLight({
@@ -358,7 +363,8 @@ int main()
         camera.GetPosition(),
         camera.GetFront(),
         {1.0f, 0.92f, 0.75f},
-        0.0f
+        0.0f,
+        false
         });
 
     scene.AddObject(GRGTF, {
