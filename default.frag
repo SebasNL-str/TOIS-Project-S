@@ -14,7 +14,7 @@ in vec3 FragPos;
 uniform sampler2D texture1;
 
 // =========================
-// C¡MARA
+// C√ÅMARA
 // =========================
 uniform vec3 viewPos;
 
@@ -44,11 +44,14 @@ void main()
     // Tomar color con alpha
     vec4 texColor = texture(texture1, TexCoord);
 
-    // Opcional: descartar pÌxeles casi transparentes
-    if (texColor.a < 0.1)
+    // Opcional: descartar p√≠xeles casi transparentes
+    if (texColor.a < 0.5)
         discard;
 
     vec3 N = normalize(Normal);
+    if (!gl_FrontFacing)
+        N = -N;
+
     vec3 V = normalize(viewPos - FragPos);
 
     vec3 result = vec3(0.0);

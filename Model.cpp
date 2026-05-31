@@ -40,9 +40,32 @@ GLuint Model::loadTexture(const std::string& filename)
 
     if (image)
     {
+        bool hasTransparency = false;
+        int pixelCount = width * height;
+        for (int i = 0; i < pixelCount; ++i)
+        {
+            if (image[i * 4 + 3] < 250)
+            {
+                hasTransparency = true;
+                break;
+            }
+        }
+
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0,
             GL_RGBA, GL_UNSIGNED_BYTE, image);
-        glGenerateMipmap(GL_TEXTURE_2D);
+
+        if (hasTransparency)
+        {
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        }
+        else
+        {
+            glGenerateMipmap(GL_TEXTURE_2D);
+        }
+
         free(image);
     }
     else
@@ -101,7 +124,7 @@ std::string Model::resolveTexturePath(const std::string& texturePath) const
 // =========================
 Model::Model(const std::string& path)
 {
-    fallbackTexture = 0; // sin fallback explícito
+    fallbackTexture = 0; // sin fallback explÃ­cito
     loadModel(path);
 }
 
@@ -227,11 +250,11 @@ void Model::processMesh(aiMesh* mesh, const aiScene* scene, glm::mat4 transform)
     aiString pathTex;
 
     // =========================
-    // DIFUSA (fallback explícito > material > color difuso > blanco)
+    // DIFUSA (fallback explÃ­cito > material > color difuso > blanco)
     // =========================
     GLuint diffuseTex = 0;
 
-    // 1. Si hay fallback explícito, úsalo siempre
+    // 1. Si hay fallback explÃ­cito, Ãºsalo siempre
     if (fallbackTexture != 0) {
         diffuseTex = fallbackTexture;
     }
@@ -258,7 +281,7 @@ void Model::processMesh(aiMesh* mesh, const aiScene* scene, glm::mat4 transform)
         }
     }
 
-    // 4. Última alternativa: blanco
+    // 4. Ãšltima alternativa: blanco
     if (diffuseTex == 0) {
         unsigned char white[3] = { 255, 255, 255 };
         glGenTextures(1, &diffuseTex);
