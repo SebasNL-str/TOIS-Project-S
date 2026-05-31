@@ -26,6 +26,7 @@
     <ClInclude Include="Menu.h" />
     <ClInclude Include="Mesh.h" />
     <ClInclude Include="Model.h" />
+    <ClInclude Include="resource.h" />
     <ClInclude Include="Scene.h" />
     <ClInclude Include="Shader.h" />
     <ClInclude Include="ShadingModel.h" />
@@ -55,6 +56,12 @@
     <None Include="Resources\Shaders\skybox.vert" />
     <None Include="Resources\Shaders\skybox_sphere.frag" />
     <None Include="Resources\Shaders\skybox_sphere.vert" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="Resource.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="Resources\Icons\TOISS.ico" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>17.0</VCProjectVersion>

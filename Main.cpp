@@ -253,12 +253,39 @@ int main()
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-    GLFWwindow* window = glfwCreateWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "T.O.I.S: Project S", NULL, NULL);
+    // 1. Obtener el monitor principal
+    GLFWmonitor* primaryMonitor = glfwGetPrimaryMonitor();
+
+    // 2. Obtener el modo de video actual del monitor (resolución)
+    const GLFWvidmode* mode = glfwGetVideoMode(primaryMonitor);
+
+    int widthR = mode->width;
+    int heightR = mode->height;
+
+    GLFWwindow* window = glfwCreateWindow(widthR, heightR, "T.O.I.S: Project S", NULL, NULL);
     if (!window)
     {
         std::cout << "Error creando ventana\n";
         glfwTerminate();
         return -1;
+    }
+
+    // Después de crear la ventana con glfwCreateWindow(...)
+    int width, height, channels;
+    unsigned char* pixels = SOIL_load_image("Resources/Icons/TOISS.png", &width, &height, &channels, SOIL_LOAD_RGBA);
+
+    if (pixels) {
+        GLFWimage images[1];
+        images[0].width = width;
+        images[0].height = height;
+        images[0].pixels = pixels;
+
+        glfwSetWindowIcon(window, 1, images);
+
+        free(pixels);
+    }
+    else {
+        std::cout << "Error cargando icono con SOIL2\n";
     }
 
     glfwMakeContextCurrent(window);
@@ -390,7 +417,7 @@ int main()
         if (framebufferHeight <= 0)
             framebufferHeight = SCREEN_HEIGHT;
 
-        glViewport(0, 0, framebufferWidth, framebufferHeight);
+        glViewport(0, 0, widthR, heightR);
 
         float currentFrame = static_cast<float>(glfwGetTime());
         deltaTime = currentFrame - lastFrame;
