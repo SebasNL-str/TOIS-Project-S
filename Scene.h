@@ -29,7 +29,7 @@ struct SceneObject
     Transform transform;
 
     glm::mat4 GetModelMatrix() const {
-        return transform.getMatrix(); // tu función que construye la matriz
+        return transform.getMatrix(); // tu funciÃ³n que construye la matriz
     }
 };
 
@@ -57,6 +57,7 @@ public:
     // LIGHTS
     // =========================
     void AddLight(const Light& light);
+    void SetLight(std::size_t index, const Light& light);
 
     // =========================
     // DEBUG LIGHT VISUALIZATION
@@ -81,6 +82,10 @@ public:
 
     const std::vector<SceneObject>& GetObjects() const {
         return objects;
+    }
+
+    std::size_t GetLightCount() const {
+        return lights.size();
     }
 
 private:

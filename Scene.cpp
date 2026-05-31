@@ -27,6 +27,7 @@ void Scene::AddObject(std::shared_ptr<Model> model, const Transform& transform)
     objects.push_back({ model, transform });
 }
 
+
 /*
 void Scene::SetLightDebugModel(std::shared_ptr<Model> model)
 {
