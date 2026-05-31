@@ -91,8 +91,10 @@ void SetMenuOpen(GLFWwindow* window, MenuRenderer& menu, SoundManager& sound, bo
     }
 }
 
-void processGameplayInput(GLFWwindow* window)
+void processGameplayInput(GLFWwindow* window, bool& flashlightEnabled)
 {
+    static bool fWasPressed = false;
+
     if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
         camera.ProcessKeyboard(FORWARD, deltaTime);
 
@@ -104,6 +106,13 @@ void processGameplayInput(GLFWwindow* window)
 
     if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
         camera.ProcessKeyboard(RIGHT, deltaTime);
+
+    bool fPressed = glfwGetKey(window, GLFW_KEY_F) == GLFW_PRESS;
+    if (fPressed && !fWasPressed)
+    {
+        flashlightEnabled = !flashlightEnabled;
+    }
+    fWasPressed = fPressed;
 }
 
 void processMenuInput(GLFWwindow* window, MenuRenderer& menu, SoundManager& sound, bool& hitboxDebug)
@@ -308,6 +317,7 @@ int main()
 
     bool hitboxDebug = false;
     bool hitboxC = false;
+    bool flashlightEnabled = true;
 
     Shader skyboxSphereShader("Resources/Shaders/skybox_sphere.vert", "Resources/Shaders/skybox_sphere.frag");
     Shader hitboxShader("Resources/Shaders/hitbox.vert", "Resources/Shaders/hitbox.frag");
@@ -336,10 +346,19 @@ int main()
 
     scene.AddLight({
         LightType::Point,
-        {5.0f, 5.0f, 0.0f},
+        {5.0f, 15.0f, 45.0f},
         {0.0f, -1.0f, 0.0f},
         {1.0f, 1.0f, 1.0f},
-        20.0f
+        50.0f
+        });
+
+    std::size_t flashlightLightIndex = scene.GetLightCount();
+    scene.AddLight({
+        LightType::Spot,
+        camera.GetPosition(),
+        camera.GetFront(),
+        {1.0f, 0.92f, 0.75f},
+        0.0f
         });
 
     scene.AddObject(GRGTF, {
@@ -371,9 +390,17 @@ int main()
         {
             glm::vec3 oldPos = camera.GetPosition();
 
-            processGameplayInput(window);
+            processGameplayInput(window, flashlightEnabled);
 
             glm::vec3 newPos = camera.GetPosition();
+
+            scene.SetLight(flashlightLightIndex, {
+                LightType::Spot,
+                newPos + camera.GetFront() * 0.25f,
+                camera.GetFront(),
+                {1.0f, 0.92f, 0.75f},
+                flashlightEnabled ? 18.0f : 0.0f
+                });
 
             if (hitboxC)
             {

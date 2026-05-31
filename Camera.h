@@ -47,9 +47,13 @@ public:
         this->position = pos;
     }
 
-    // Obtener la posición actual
+    // Obtener la posiciÃ³n actual
     inline glm::vec3 GetPosition() const {
         return this->position;
+    }
+
+    inline glm::vec3 GetFront() const {
+        return this->front;
     }
 
     // Constructor with scalar values

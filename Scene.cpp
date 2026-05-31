@@ -4,7 +4,7 @@
 
 void Scene::DrawHitboxes(Shader& hitboxShader, Camera& camera, const glm::mat4& projection) {
     hitboxShader.Use();
-    for (auto& obj : objects) { // aquí sí usas tu vector interno de objetos
+    for (auto& obj : objects) { // aquÃ­ sÃ­ usas tu vector interno de objetos
         glm::mat4 modelMatrix = obj.transform.getMatrix();
         DrawHitbox(obj.model->hitbox,
             hitboxShader,
@@ -49,6 +49,21 @@ void Scene::AddLight(const Light& light)
     lights.push_back(l);
 }
 
+void Scene::SetLight(std::size_t index, const Light& light)
+{
+    if (index >= lights.size())
+    {
+        return;
+    }
+
+    Light l = light;
+
+    if (l.type == LightType::Directional || l.type == LightType::Spot)
+        l.direction = glm::normalize(l.direction);
+
+    lights[index] = l;
+}
+
 void Scene::Draw(Shader& shader, Shader& emissiveShader, Camera& camera)
 {
     // =========================
@@ -64,7 +79,7 @@ void Scene::Draw(Shader& shader, Shader& emissiveShader, Camera& camera)
     );
 
     // =========================
-    // SHADER PRINCIPAL (ILUMINACIÓN)
+    // SHADER PRINCIPAL (ILUMINACIÃ“N)
     // =========================
     shader.Use();
 
