@@ -49,23 +49,39 @@ void DrawProgressBar(GLuint barVAO, GLuint barVBO, Shader& loadingShader, float 
         startX + filled, -0.8f
     };
     glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(barVertices), barVertices);
-    loadingShader.SetVec3("barColor", glm::vec3(0.2f, 0.8f, 0.2f));
+    loadingShader.SetVec3("barColor", glm::vec3(0.95f, 0.87f, 0.73f));
     glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
 }
 
 void DrawLoadingSpinner(Shader& loadingShader, float time) {
-    const int NUM_DOTS = 8;
-    float radius = 0.05f;
-    glm::vec2 center(0.0f, -0.6f);
+    const int NUM_DOTS = 16;
+
+    // Configuración de tamaño (puedes aumentar el radius si lo deseas)
+    float radius = 0.30f;
+    glm::vec2 center(0.0f, 0.0f);
+
+    // Obtener el tamaño del Viewport actual para calcular el Aspect Ratio
+    GLint viewport[4];
+    glGetIntegerv(GL_VIEWPORT, viewport);
+    float width = static_cast<float>(viewport[2]);
+    float height = static_cast<float>(viewport[3]);
+    float aspectRatio = (height > 0.0f) ? (width / height) : 1.0f;
 
     glEnable(GL_PROGRAM_POINT_SIZE);
 
-    float spinnerVertices[NUM_DOTS * 2];
+    // Creamos espacio para 9 puntos (8 del anillo + 1 central) = 18 flotantes
+    float spinnerVertices[(NUM_DOTS + 1) * 2];
+
+    // 1. Calcular los 8 puntos del anillo perimetral
     for (int i = 0; i < NUM_DOTS; i++) {
         float angle = i * (2.0f * glm::pi<float>() / NUM_DOTS);
-        spinnerVertices[i * 2] = center.x + cos(angle) * radius;
+        spinnerVertices[i * 2] = center.x + (cos(angle) * radius) / aspectRatio;
         spinnerVertices[i * 2 + 1] = center.y + sin(angle) * radius;
     }
+
+    // 2. AGREGAR EL PUNTO CENTRAL EN LA ÚLTIMA POSICIÓN (Índice 8)
+    spinnerVertices[NUM_DOTS * 2] = 0.0f; // X central
+    spinnerVertices[NUM_DOTS * 2 + 1] = 0.0f; // Y central
 
     GLuint spinnerVAO, spinnerVBO;
     glGenVertexArrays(1, &spinnerVAO);
@@ -79,22 +95,29 @@ void DrawLoadingSpinner(Shader& loadingShader, float time) {
     glEnableVertexAttribArray(0);
 
     loadingShader.Use();
-    glPointSize(14.0f); // Un tamaño óptimo para apreciar la ola circular
 
-    // Configuración de Uniforms para la GPU
+    // Enviamos los Uniforms de control
     loadingShader.SetBool("isSpinner", true);
-    loadingShader.SetFloat("globalTime", time); // Pasamos el tiempo absoluto real sin modificaciones
-    loadingShader.SetVec3("barColor", glm::vec3(0.2f, 0.8f, 0.2f)); // Verde TOIS
+    loadingShader.SetFloat("globalTime", time);
+    loadingShader.SetVec3("barColor", glm::vec3(0.95f, 0.87f, 0.73f)); // Beige
 
-    // Dibujamos todos los círculos de un solo golpe con una única llamada de dibujo
+    // Pasamos el tamaño de la ventana y el Aspect Ratio al Shader
+    loadingShader.SetVec3("screenSize", glm::vec3(width, height, aspectRatio));
+
+    // Dibujamos los 8 puntos del anillo perimetral (con tamaño normal)
+    glPointSize(18.0f);
     glDrawArrays(GL_POINTS, 0, NUM_DOTS);
 
-    // Desactivamos el modo spinner para el siguiente frame de la barra
+    // Dibujamos ÚNICAMENTE el punto central con un tamaño gigante para albergar la S
+    glPointSize(160.0f); // Si quieres la S más grande, aumenta este valor (ej. 200.0f)
+    glDrawArrays(GL_POINTS, NUM_DOTS, 1);
+
     loadingShader.SetBool("isSpinner", false);
 
     glDeleteBuffers(1, &spinnerVBO);
     glDeleteVertexArrays(1, &spinnerVAO);
 }
+
 
 
 
