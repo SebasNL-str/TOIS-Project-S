@@ -72,6 +72,9 @@
     <ClInclude Include="Utils.h">
       <Filter>Archivos de encabezado</Filter>
     </ClInclude>
+    <ClInclude Include="LoadingScreen.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Main.cpp">
@@ -105,6 +108,9 @@
       <Filter>Archivos de origen</Filter>
     </ClCompile>
     <ClCompile Include="Utils.cpp">
+      <Filter>Archivos de origen</Filter>
+    </ClCompile>
+    <ClCompile Include="LoadingScreen.cpp">
       <Filter>Archivos de origen</Filter>
     </ClCompile>
   </ItemGroup>
@@ -143,6 +149,12 @@
       <Filter>Archivos de recursos\Shaders</Filter>
     </None>
     <None Include="Resources\Shaders\skybox.vert">
+      <Filter>Archivos de recursos\Shaders</Filter>
+    </None>
+    <None Include="Resources\Shaders\loading.frag">
+      <Filter>Archivos de recursos\Shaders</Filter>
+    </None>
+    <None Include="Resources\Shaders\loading.vert">
       <Filter>Archivos de recursos\Shaders</Filter>
     </None>
   </ItemGroup>

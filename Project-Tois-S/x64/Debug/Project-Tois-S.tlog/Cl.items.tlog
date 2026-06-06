@@ -1,7 +1,12 @@
 C:\Users\DELL\source\repos\TOIS-Project-S\Hitbox.cpp;C:\Users\DELL\source\repos\TOIS-Project-S\Project-Tois-S\x64\Debug\Hitbox.obj
+C:\Users\DELL\source\repos\TOIS-Project-S\InputHandler.cpp;C:\Users\DELL\source\repos\TOIS-Project-S\Project-Tois-S\x64\Debug\InputHandler.obj
+C:\Users\DELL\source\repos\TOIS-Project-S\LoadingScreen.cpp;C:\Users\DELL\source\repos\TOIS-Project-S\Project-Tois-S\x64\Debug\LoadingScreen.obj
 C:\Users\DELL\source\repos\TOIS-Project-S\Main.cpp;C:\Users\DELL\source\repos\TOIS-Project-S\Project-Tois-S\x64\Debug\Main.obj
+C:\Users\DELL\source\repos\TOIS-Project-S\MenuController.cpp;C:\Users\DELL\source\repos\TOIS-Project-S\Project-Tois-S\x64\Debug\MenuController.obj
 C:\Users\DELL\source\repos\TOIS-Project-S\Mesh.cpp;C:\Users\DELL\source\repos\TOIS-Project-S\Project-Tois-S\x64\Debug\Mesh.obj
 C:\Users\DELL\source\repos\TOIS-Project-S\Model.cpp;C:\Users\DELL\source\repos\TOIS-Project-S\Project-Tois-S\x64\Debug\Model.obj
 C:\Users\DELL\source\repos\TOIS-Project-S\Scene.cpp;C:\Users\DELL\source\repos\TOIS-Project-S\Project-Tois-S\x64\Debug\Scene.obj
 C:\Users\DELL\source\repos\TOIS-Project-S\Shader.cpp;C:\Users\DELL\source\repos\TOIS-Project-S\Project-Tois-S\x64\Debug\Shader.obj
 C:\Users\DELL\source\repos\TOIS-Project-S\Skybox.cpp;C:\Users\DELL\source\repos\TOIS-Project-S\Project-Tois-S\x64\Debug\Skybox.obj
+C:\Users\DELL\source\repos\TOIS-Project-S\Utils.cpp;C:\Users\DELL\source\repos\TOIS-Project-S\Project-Tois-S\x64\Debug\Utils.obj
+C:\Users\DELL\source\repos\TOIS-Project-S\WindowManager.cpp;C:\Users\DELL\source\repos\TOIS-Project-S\Project-Tois-S\x64\Debug\WindowManager.obj

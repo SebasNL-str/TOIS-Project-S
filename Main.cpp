@@ -15,7 +15,7 @@
 #include "Utils.h"
 #include "Scene.h"
 #include "SoundManager.h"
-
+#include "LoadingScreen.h"
 
 const int SCREEN_WIDTH = 1000;
 const int SCREEN_HEIGHT = 800;
@@ -48,6 +48,18 @@ int main()
 
     if (!InitOpenGLState()) return -1;
 
+    // Crear shader de carga DESPUÉS del contexto
+    Shader loadingShader("Resources/Shaders/loading.vert", "Resources/Shaders/loading.frag");
+
+    // Inicializar barra
+    GLuint barVAO, barVBO;
+    InitProgressBar(barVAO, barVBO);
+    int totalAssets = 5;
+    int loadedAssets = 0;
+
+    // Mostrar la pantalla en 0% antes de empezar a cargar
+    UpdateLoadingScreen(window, barVAO, barVBO, loadingShader, loadedAssets, totalAssets);
+
     // =========================
     // CORE SYSTEMS
     // =========================
@@ -59,9 +71,17 @@ int main()
     ShowMainMenu(menu);
 
     SoundManager sound("Resources/Sound/ambient.wav");
+
+    loadedAssets++;
+    UpdateLoadingScreen(window, barVAO, barVBO, loadingShader, loadedAssets, totalAssets);
+
     SetMenuOpen(window, menu, sound, true);
 
     Shader shader("Resources/Shaders/default.vert", "Resources/Shaders/default.frag");
+
+    loadedAssets++;
+    UpdateLoadingScreen(window, barVAO, barVBO, loadingShader, loadedAssets, totalAssets);
+
     shader.Use();
     shader.SetInt("texture1", 0);
 
@@ -78,6 +98,10 @@ int main()
         "Resources/Skybox/Cubemaps/Night/pz.png", // pz - front
         "Resources/Skybox/Cubemaps/Night/nz.png"  // nz - back
     };
+
+    loadedAssets++;
+    UpdateLoadingScreen(window, barVAO, barVBO, loadingShader, loadedAssets, totalAssets);
+
     Skybox skybox(faces);
 
     bool hitboxDebug = false;
@@ -130,11 +154,17 @@ int main()
         false
         });
 
+    loadedAssets++;
+    UpdateLoadingScreen(window, barVAO, barVBO, loadingShader, loadedAssets, totalAssets);
+
     scene.AddObject(GRGTF, {
         {5.0f, 0.0f, 45.0f},
         {0.0f, 0.0f, 0.0f},
         {0.8f, 0.8f, 0.8f}
         });
+
+    loadedAssets++;
+    UpdateLoadingScreen(window, barVAO, barVBO, loadingShader, loadedAssets, totalAssets);
 
     // APARTADO COLLIDERS (SIN TOCAR)
     for (auto& obj : scene.GetObjects())
