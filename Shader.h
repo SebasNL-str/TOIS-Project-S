@@ -34,4 +34,5 @@ public:
 
     void SetFloat(const std::string& name, float value);
     void SetVec3(const std::string& name, const glm::vec3& value);
+    void SetBool(const std::string& name, bool value) const;
 };

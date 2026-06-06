@@ -2,7 +2,8 @@
 #include <fstream>
 #include <memory>
 #include <vector>
-
+#include <future>  // Para std::async y std::future
+#include <chrono>  // Para manejar tiempos si es necesario
 
 #include "Skybox.h"
 #include "Camera.h"
@@ -35,9 +36,13 @@ MenuScreen currentMenuScreen = MenuScreen::Main;
 int main()
 {
     // ==========================================
-    // INICIALIZACIÓN DE VENTANA Y ESTADOS (Vía WindowManager)
-    // ==========================================
+        // INICIALIZACIÓN DE VENTANA Y ESTADOS (Vía WindowManager)
+        // ==========================================
     int widthR, heightR;
+
+    glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
+    glfwWindowHint(GLFW_MAXIMIZED, GLFW_TRUE);
+
     GLFWwindow* window = InitWindow(widthR, heightR, "T.O.I.S: Project S");
     if (!window) return -1;
 
@@ -48,130 +53,156 @@ int main()
 
     if (!InitOpenGLState()) return -1;
 
-    // Crear shader de carga DESPUÉS del contexto
     Shader loadingShader("Resources/Shaders/loading.vert", "Resources/Shaders/loading.frag");
 
-    // Inicializar barra
     GLuint barVAO, barVBO;
     InitProgressBar(barVAO, barVBO);
+
     int totalAssets = 5;
     int loadedAssets = 0;
 
-    // Mostrar la pantalla en 0% antes de empezar a cargar
-    UpdateLoadingScreen(window, barVAO, barVBO, loadingShader, loadedAssets, totalAssets);
+    // ============================================================================
+    // DECLARACIÓN DE OBJETOS (Asignación diferida, sintaxis original con '.')
+    // ============================================================================
+    std::shared_ptr<SoundManager> soundPtr;
+    std::shared_ptr<Shader> shaderPtr;
+    std::shared_ptr<Shader> skyboxShaderPtr;
+    std::shared_ptr<Skybox> skyboxPtr;
+    std::shared_ptr<Shader> skyboxSphereShaderPtr;
+    std::shared_ptr<Shader> hitboxShaderPtr;
+    std::shared_ptr<Skybox> sphereSkyboxPtr;
+    std::shared_ptr<Shader> emissiveShaderPtr;
+    std::shared_ptr<Model> GRGTFPtr;
+    std::shared_ptr<Model> spherePtr;
 
-    // =========================
-    // CORE SYSTEMS
-    // =========================
+    std::vector<std::string> faces = {
+        "Resources/Skybox/Cubemaps/Night/px.png", "Resources/Skybox/Cubemaps/Night/nx.png",
+        "Resources/Skybox/Cubemaps/Night/py.png", "Resources/Skybox/Cubemaps/Night/ny.png",
+        "Resources/Skybox/Cubemaps/Night/pz.png", "Resources/Skybox/Cubemaps/Night/nz.png"
+    };
+
+    // ============================================================================
+    // MAQUINARIA DE CARGA INTERACTIVA POR ESTADOS (HILO ÚNICO SEGURO)
+    // ============================================================================
+    int loadingState = 0;
+
+    // Este bucle procesará un asset a la vez, renderizando los círculos fluidamente entre cargas
+    while (loadingState < totalAssets)
+    {
+        if (glfwWindowShouldClose(window)) return 0;
+
+        // 1. Dibujar la pantalla de carga (Garantiza que los círculos parpadeen en cada iteración)
+        UpdateLoadingScreen(window, barVAO, barVBO, loadingShader, loadedAssets, totalAssets);
+
+        // 2. Procesar el asset correspondiente a este frame
+        switch (loadingState)
+        {
+        case 0:
+            // Asset 1: Audio
+            soundPtr = std::make_shared<SoundManager>("Resources/Sound/ambient.wav");
+            loadedAssets = 1;
+            loadingState = 1;
+            break;
+
+        case 1:
+            // Asset 2: Compilación de Shaders de escena
+            shaderPtr = std::make_shared<Shader>("Resources/Shaders/default.vert", "Resources/Shaders/default.frag");
+            skyboxShaderPtr = std::make_shared<Shader>("Resources/Shaders/skybox.vert", "Resources/Shaders/skybox.frag");
+            skyboxSphereShaderPtr = std::make_shared<Shader>("Resources/Shaders/skybox_sphere.vert", "Resources/Shaders/skybox_sphere.frag");
+            hitboxShaderPtr = std::make_shared<Shader>("Resources/Shaders/hitbox.vert", "Resources/Shaders/hitbox.frag");
+            emissiveShaderPtr = std::make_shared<Shader>("Resources/Shaders/emissive.vert", "Resources/Shaders/emissive.frag");
+            loadedAssets = 2;
+            loadingState = 2;
+            break;
+
+        case 2:
+            // Asset 3: Carga de mapas de cubos/esferas (Skybox)
+            skyboxPtr = std::make_shared<Skybox>(faces);
+            sphereSkyboxPtr = std::make_shared<Skybox>("Resources/Skybox/Sphere/moonless_golf_4k.png", SkyboxType::Sphere);
+            loadedAssets = 3;
+            loadingState = 3;
+            break;
+
+        case 3:
+            // Asset 4: Modelos 3D geométricos
+            GRGTFPtr = std::make_shared<Model>("Resources/Models/GLTF/Graveyard/Cementerio.gltf");
+            spherePtr = std::make_shared<Model>("Resources/Models/OBJ/sphere.obj");
+            loadedAssets = 4;
+            loadingState = 4;
+            break;
+
+        case 4:
+            // Forzamos un renderizado rápido antes de salir del bucle para pintar el 100%
+            loadedAssets = 5;
+            loadingState = 5;
+            break;
+        }
+
+        // Permitir que el sistema operativo procese los eventos gráficos de la ventana
+        glfwPollEvents();
+    }
+
+    // ============================================================================
+    // CREACIÓN DE REFERENCIAS CON NOMBRES ORIGINALES (RECONOCE EL '.')
+    // ============================================================================
+    SoundManager& sound = *soundPtr;
+    Shader& shader = *shaderPtr;
+    Shader& skyboxShader = *skyboxShaderPtr;
+    Skybox& skybox = *skyboxPtr;
+    Shader& skyboxSphereShader = *skyboxSphereShaderPtr;
+    Shader& hitboxShader = *hitboxShaderPtr;
+    Skybox& sphereSkybox = *sphereSkyboxPtr;
+    Shader& emissiveShader = *emissiveShaderPtr;
+
+    bool hitboxDebug = false;
+    bool hullDebug = true;
+    bool hitboxC = true;
+    bool flashlightEnabled = true;
+    SkyboxType activeType = SkyboxType::Cube;
+
+    auto GRGTF = GRGTFPtr;
+    auto sphere = spherePtr;
+
+    // ============================================================================
+    // ASIGNACIONES Y CONFIGURACIÓN POST-CARGA
+    // ============================================================================
     MenuRenderer menu;
     MenuSettings menuSettings;
     menuSettings.visible = true;
     menuSettings.useBackgroundImage = false;
     menu.Configure(menuSettings);
     ShowMainMenu(menu);
-
-    SoundManager sound("Resources/Sound/ambient.wav");
-
-    loadedAssets++;
-    UpdateLoadingScreen(window, barVAO, barVBO, loadingShader, loadedAssets, totalAssets);
-
     SetMenuOpen(window, menu, sound, true);
-
-    Shader shader("Resources/Shaders/default.vert", "Resources/Shaders/default.frag");
-
-    loadedAssets++;
-    UpdateLoadingScreen(window, barVAO, barVBO, loadingShader, loadedAssets, totalAssets);
 
     shader.Use();
     shader.SetInt("texture1", 0);
-
-    // Crear skybox
-    Shader skyboxShader("Resources/Shaders/skybox.vert", "Resources/Shaders/skybox.frag");
     skyboxShader.Use();
     skyboxShader.SetInt("skybox", 0);
 
-    std::vector<std::string> faces = {
-        "Resources/Skybox/Cubemaps/Night/px.png", // px - right
-        "Resources/Skybox/Cubemaps/Night/nx.png", // nx - left
-        "Resources/Skybox/Cubemaps/Night/py.png", // py - top
-        "Resources/Skybox/Cubemaps/Night/ny.png", // ny - bottom
-        "Resources/Skybox/Cubemaps/Night/pz.png", // pz - front
-        "Resources/Skybox/Cubemaps/Night/nz.png"  // nz - back
-    };
-
-    loadedAssets++;
-    UpdateLoadingScreen(window, barVAO, barVBO, loadingShader, loadedAssets, totalAssets);
-
-    Skybox skybox(faces);
-
-    bool hitboxDebug = false;
-    bool hullDebug = true;
-    bool hitboxC = true;
-    bool flashlightEnabled = true;
-
-    Shader skyboxSphereShader("Resources/Shaders/skybox_sphere.vert", "Resources/Shaders/skybox_sphere.frag");
-    Shader hitboxShader("Resources/Shaders/hitbox.vert", "Resources/Shaders/hitbox.frag");
-    Skybox sphereSkybox("Resources/Skybox/Sphere/moonless_golf_4k.png", SkyboxType::Sphere);
-
     Scene scene;
 
-    Shader emissiveShader("Resources/Shaders/emissive.vert", "Resources/Shaders/emissive.frag");
-
-    SkyboxType activeType = SkyboxType::Cube;
-
-    auto GRGTF = std::make_shared<Model>("Resources/Models/GLTF/Graveyard/Cementerio.gltf");
-
-    // =========================
-    // SCENE OBJECTS
-    // =========================
-    auto sphere = std::make_shared<Model>("Resources/Models/OBJ/sphere.obj");
-
-    if (FileExists("Resources/Models/OBJ/Sphere.obj"))
-    {
+    if (FileExists("Resources/Models/OBJ/Sphere.obj")) {
         scene.SetLightSphere(sphere);
     }
-    else
-    {
+    else {
         scene.SetLightSphere(nullptr);
     }
 
-    scene.AddLight({
-        LightType::Point,
-        {5.0f, 25.0f, 50.0f},
-        {0.0f, -1.0f, 0.0f},
-        {1.0f, 1.0f, 1.0f},
-        10.0f,
-        true
-        });
+    scene.AddLight({ LightType::Point, {5.0f, 25.0f, 50.0f}, {0.0f, -1.0f, 0.0f}, {1.0f, 1.0f, 1.0f}, 10.0f, true });
 
     std::size_t flashlightLightIndex = scene.GetLightCount();
-    scene.AddLight({
-        LightType::Spot,
-        camera.GetPosition(),
-        camera.GetFront(),
-        {1.0f, 0.92f, 0.75f},
-        0.0f,
-        false
-        });
+    scene.AddLight({ LightType::Spot, camera.GetPosition(), camera.GetFront(), {1.0f, 0.92f, 0.75f}, 0.0f, false });
 
-    loadedAssets++;
-    UpdateLoadingScreen(window, barVAO, barVBO, loadingShader, loadedAssets, totalAssets);
+    scene.AddObject(GRGTF, { {5.0f, 0.0f, 45.0f}, {0.0f, 0.0f, 0.0f}, {0.8f, 0.8f, 0.8f} });
 
-    scene.AddObject(GRGTF, {
-        {5.0f, 0.0f, 45.0f},
-        {0.0f, 0.0f, 0.0f},
-        {0.8f, 0.8f, 0.8f}
-        });
-
-    loadedAssets++;
-    UpdateLoadingScreen(window, barVAO, barVBO, loadingShader, loadedAssets, totalAssets);
-
-    // APARTADO COLLIDERS (SIN TOCAR)
-    for (auto& obj : scene.GetObjects())
-    {
-        // Pasamos el collider de cada modelo a la función que crea el VAO
+    // Asset 5: Armado de colliders (Último paso síncrono)
+    for (auto& obj : scene.GetObjects()) {
         SetupMeshCollider(obj.model->collider);
     }
+
+    // Dibujar el estado final al 100% antes de entrar al juego
+    UpdateLoadingScreen(window, barVAO, barVBO, loadingShader, 5, totalAssets);
+
 
     while (!glfwWindowShouldClose(window))
     {

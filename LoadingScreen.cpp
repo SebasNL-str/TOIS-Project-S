@@ -53,23 +53,20 @@ void DrawProgressBar(GLuint barVAO, GLuint barVBO, Shader& loadingShader, float 
     glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
 }
 
-// NUEVA FUNCIÓN: Dibuja un círculo giratorio de puntos arqueados
 void DrawLoadingSpinner(Shader& loadingShader, float time) {
     const int NUM_DOTS = 8;
-    float radius = 0.05f;           // Tamaño del anillo contenedor
-    glm::vec2 center(0.0f, -0.6f);  // Ubicación arriba de la barra de progreso
+    float radius = 0.05f;
+    glm::vec2 center(0.0f, -0.6f);
 
     glEnable(GL_PROGRAM_POINT_SIZE);
 
-    // 1. Posiciones FIJAS para los círculos (No rotan)
     float spinnerVertices[NUM_DOTS * 2];
     for (int i = 0; i < NUM_DOTS; i++) {
         float angle = i * (2.0f * glm::pi<float>() / NUM_DOTS);
-        spinnerVertices[i * 2] = center.x + cos(angle) * radius; // X fija
-        spinnerVertices[i * 2 + 1] = center.y + sin(angle) * radius; // Y fija
+        spinnerVertices[i * 2] = center.x + cos(angle) * radius;
+        spinnerVertices[i * 2 + 1] = center.y + sin(angle) * radius;
     }
 
-    // Enviar las posiciones fijas a buffers temporales
     GLuint spinnerVAO, spinnerVBO;
     glGenVertexArrays(1, &spinnerVAO);
     glGenBuffers(1, &spinnerVBO);
@@ -82,33 +79,24 @@ void DrawLoadingSpinner(Shader& loadingShader, float time) {
     glEnableVertexAttribArray(0);
 
     loadingShader.Use();
-    glPointSize(10.0f); // Círculos un poco más grandes para que se note el efecto
+    glPointSize(14.0f); // Un tamaño óptimo para apreciar la ola circular
 
-    // 2. Calcular cuál círculo debe estar "encendido" en este milisegundo
-    float speed = 6.0f; // Velocidad de la secuencia (número de pasos por segundo)
+    // Configuración de Uniforms para la GPU
+    loadingShader.SetBool("isSpinner", true);
+    loadingShader.SetFloat("globalTime", time); // Pasamos el tiempo absoluto real sin modificaciones
+    loadingShader.SetVec3("barColor", glm::vec3(0.2f, 0.8f, 0.2f)); // Verde TOIS
 
-    for (int i = 0; i < NUM_DOTS; i++) {
-        // MATEMÁTICAS DEL DESVANECIMIENTO:
-        // Calculamos la distancia de fase entre el tiempo actual y la posición de este círculo.
-        // Esto genera un valor que va disminuyendo suavemente (estela) desde el punto activo.
-        float phase = fmod(time * speed - i, (float)NUM_DOTS);
-        if (phase < 0.0f) phase += NUM_DOTS; // Corrección para ciclos limpios
+    // Dibujamos todos los círculos de un solo golpe con una única llamada de dibujo
+    glDrawArrays(GL_POINTS, 0, NUM_DOTS);
 
-        // Factor de brillo: 1.0 es encendido máximo, 0.1 es apagado/tenue
-        float brightness = 1.0f - (phase / (float)NUM_DOTS);
-        if (brightness < 0.1f) brightness = 0.1f; // Que nunca se borre del todo el fondo
+    // Desactivamos el modo spinner para el siguiente frame de la barra
+    loadingShader.SetBool("isSpinner", false);
 
-        // Aplicamos el brillo al color verde original (0.2, 0.8, 0.2)
-        glm::vec3 finalColor = glm::vec3(0.2f * brightness, 0.8f * brightness, 0.2f * brightness);
-
-        loadingShader.SetVec3("barColor", finalColor);
-        glDrawArrays(GL_POINTS, i, 1);
-    }
-
-    // Limpieza de memoria
     glDeleteBuffers(1, &spinnerVBO);
     glDeleteVertexArrays(1, &spinnerVAO);
 }
+
+
 
 void UpdateLoadingScreen(GLFWwindow* window, GLuint barVAO, GLuint barVBO, Shader& loadingShader, int loadedAssets, int totalAssets) {
     int width, height;
