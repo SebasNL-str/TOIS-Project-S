@@ -24,6 +24,7 @@
     <ClInclude Include="InputHandler.h" />
     <ClInclude Include="Light.h" />
     <ClInclude Include="LightTypes.h" />
+    <ClInclude Include="LoadingHelper.h" />
     <ClInclude Include="LoadingScreen.h" />
     <ClInclude Include="Menu.h" />
     <ClInclude Include="MenuController.h" />
@@ -42,6 +43,7 @@
   <ItemGroup>
     <ClCompile Include="Hitbox.cpp" />
     <ClCompile Include="InputHandler.cpp" />
+    <ClCompile Include="LoadingHelper.cpp" />
     <ClCompile Include="LoadingScreen.cpp" />
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="MenuController.cpp" />

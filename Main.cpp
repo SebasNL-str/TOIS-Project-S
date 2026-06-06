@@ -17,6 +17,7 @@
 #include "Scene.h"
 #include "SoundManager.h"
 #include "LoadingScreen.h"
+#include "LoadingHelper.h"
 
 const int SCREEN_WIDTH = 1000;
 const int SCREEN_HEIGHT = 800;
@@ -35,136 +36,52 @@ MenuScreen currentMenuScreen = MenuScreen::Main;
 
 int main()
 {
-    // ==========================================
-        // INICIALIZACIÓN DE VENTANA Y ESTADOS (Vía WindowManager)
-        // ==========================================
+    // ============================================================================
+    // 1. INICIALIZACIÓN DE VENTANA (Limpia mediante WindowManager)
+    // ============================================================================
     int widthR, heightR;
-
-    glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
-    glfwWindowHint(GLFW_MAXIMIZED, GLFW_TRUE);
-
     GLFWwindow* window = InitWindow(widthR, heightR, "T.O.I.S: Project S");
     if (!window) return -1;
 
     LoadWindowIcon(window, "Resources/Icons/TOISS.png");
-
     glfwSetCursorPosCallback(window, mouse_callback);
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
 
     if (!InitOpenGLState()) return -1;
 
+    // ============================================================================
+    // 2. SISTEMA INTERACTIVO DE PANTALLA DE CARGA
+    // ============================================================================
     Shader loadingShader("Resources/Shaders/loading.vert", "Resources/Shaders/loading.frag");
-
     GLuint barVAO, barVBO;
     InitProgressBar(barVAO, barVBO);
 
-    int totalAssets = 5;
-    int loadedAssets = 0;
+    // Invocación centralizada de la maquinaria de estados
+    GAssets loadedData = ExecuteInteractiveLoading(window, loadingShader, barVAO, barVBO);
 
     // ============================================================================
-    // DECLARACIÓN DE OBJETOS (Asignación diferida, sintaxis original con '.')
+    // 3. RECUPERACIÓN DE REFERENCIAS ORIGINALES (Compatibilidad con '.')
     // ============================================================================
-    std::shared_ptr<SoundManager> soundPtr;
-    std::shared_ptr<Shader> shaderPtr;
-    std::shared_ptr<Shader> skyboxShaderPtr;
-    std::shared_ptr<Skybox> skyboxPtr;
-    std::shared_ptr<Shader> skyboxSphereShaderPtr;
-    std::shared_ptr<Shader> hitboxShaderPtr;
-    std::shared_ptr<Skybox> sphereSkyboxPtr;
-    std::shared_ptr<Shader> emissiveShaderPtr;
-    std::shared_ptr<Model> GRGTFPtr;
-    std::shared_ptr<Model> spherePtr;
+    SoundManager& sound = *loadedData.sound;
+    Shader& shader = *loadedData.shader;
+    Shader& skyboxShader = *loadedData.skyboxShader;
+    Skybox& skybox = *loadedData.skybox;
+    Shader& skyboxSphereShader = *loadedData.skyboxSphereShader;
+    Shader& hitboxShader = *loadedData.hitboxShader;
+    Skybox& sphereSkybox = *loadedData.sphereSkybox;
+    Shader& emissiveShader = *loadedData.emissiveShader;
+    auto GRGTF = loadedData.GYGLTF;
+    auto sphere = loadedData.sphere;
 
-    std::vector<std::string> faces = {
-        "Resources/Skybox/Cubemaps/Night/px.png", "Resources/Skybox/Cubemaps/Night/nx.png",
-        "Resources/Skybox/Cubemaps/Night/py.png", "Resources/Skybox/Cubemaps/Night/ny.png",
-        "Resources/Skybox/Cubemaps/Night/pz.png", "Resources/Skybox/Cubemaps/Night/nz.png"
-    };
-
-    // ============================================================================
-    // MAQUINARIA DE CARGA INTERACTIVA POR ESTADOS (HILO ÚNICO SEGURO)
-    // ============================================================================
-    int loadingState = 0;
-
-    // Este bucle procesará un asset a la vez, renderizando los círculos fluidamente entre cargas
-    while (loadingState < totalAssets)
-    {
-        if (glfwWindowShouldClose(window)) return 0;
-
-        // 1. Dibujar la pantalla de carga (Garantiza que los círculos parpadeen en cada iteración)
-        UpdateLoadingScreen(window, barVAO, barVBO, loadingShader, loadedAssets, totalAssets);
-
-        // 2. Procesar el asset correspondiente a este frame
-        switch (loadingState)
-        {
-        case 0:
-            // Asset 1: Audio
-            soundPtr = std::make_shared<SoundManager>("Resources/Sound/ambient.wav");
-            loadedAssets = 1;
-            loadingState = 1;
-            break;
-
-        case 1:
-            // Asset 2: Compilación de Shaders de escena
-            shaderPtr = std::make_shared<Shader>("Resources/Shaders/default.vert", "Resources/Shaders/default.frag");
-            skyboxShaderPtr = std::make_shared<Shader>("Resources/Shaders/skybox.vert", "Resources/Shaders/skybox.frag");
-            skyboxSphereShaderPtr = std::make_shared<Shader>("Resources/Shaders/skybox_sphere.vert", "Resources/Shaders/skybox_sphere.frag");
-            hitboxShaderPtr = std::make_shared<Shader>("Resources/Shaders/hitbox.vert", "Resources/Shaders/hitbox.frag");
-            emissiveShaderPtr = std::make_shared<Shader>("Resources/Shaders/emissive.vert", "Resources/Shaders/emissive.frag");
-            loadedAssets = 2;
-            loadingState = 2;
-            break;
-
-        case 2:
-            // Asset 3: Carga de mapas de cubos/esferas (Skybox)
-            skyboxPtr = std::make_shared<Skybox>(faces);
-            sphereSkyboxPtr = std::make_shared<Skybox>("Resources/Skybox/Sphere/moonless_golf_4k.png", SkyboxType::Sphere);
-            loadedAssets = 3;
-            loadingState = 3;
-            break;
-
-        case 3:
-            // Asset 4: Modelos 3D geométricos
-            GRGTFPtr = std::make_shared<Model>("Resources/Models/GLTF/Graveyard/Cementerio.gltf");
-            spherePtr = std::make_shared<Model>("Resources/Models/OBJ/sphere.obj");
-            loadedAssets = 4;
-            loadingState = 4;
-            break;
-
-        case 4:
-            // Forzamos un renderizado rápido antes de salir del bucle para pintar el 100%
-            loadedAssets = 5;
-            loadingState = 5;
-            break;
-        }
-
-        // Permitir que el sistema operativo procese los eventos gráficos de la ventana
-        glfwPollEvents();
-    }
-
-    // ============================================================================
-    // CREACIÓN DE REFERENCIAS CON NOMBRES ORIGINALES (RECONOCE EL '.')
-    // ============================================================================
-    SoundManager& sound = *soundPtr;
-    Shader& shader = *shaderPtr;
-    Shader& skyboxShader = *skyboxShaderPtr;
-    Skybox& skybox = *skyboxPtr;
-    Shader& skyboxSphereShader = *skyboxSphereShaderPtr;
-    Shader& hitboxShader = *hitboxShaderPtr;
-    Skybox& sphereSkybox = *sphereSkyboxPtr;
-    Shader& emissiveShader = *emissiveShaderPtr;
-
+    // Estados de configuración de simulación originales
     bool hitboxDebug = false;
     bool hullDebug = true;
     bool hitboxC = true;
     bool flashlightEnabled = true;
     SkyboxType activeType = SkyboxType::Cube;
 
-    auto GRGTF = GRGTFPtr;
-    auto sphere = spherePtr;
-
     // ============================================================================
-    // ASIGNACIONES Y CONFIGURACIÓN POST-CARGA
+    // 4. CONFIGURACIÓN FINAL POST-CARGA
     // ============================================================================
     MenuRenderer menu;
     MenuSettings menuSettings;
@@ -180,7 +97,6 @@ int main()
     skyboxShader.SetInt("skybox", 0);
 
     Scene scene;
-
     if (FileExists("Resources/Models/OBJ/Sphere.obj")) {
         scene.SetLightSphere(sphere);
     }
@@ -195,13 +111,13 @@ int main()
 
     scene.AddObject(GRGTF, { {5.0f, 0.0f, 45.0f}, {0.0f, 0.0f, 0.0f}, {0.8f, 0.8f, 0.8f} });
 
-    // Asset 5: Armado de colliders (Último paso síncrono)
+    // Armado de mallas de colisión nativas en la escena
     for (auto& obj : scene.GetObjects()) {
         SetupMeshCollider(obj.model->collider);
     }
 
-    // Dibujar el estado final al 100% antes de entrar al juego
-    UpdateLoadingScreen(window, barVAO, barVBO, loadingShader, 5, totalAssets);
+    // Forzar último renderizado al 100% oficial
+    UpdateLoadingScreen(window, barVAO, barVBO, loadingShader, 5, 5);
 
 
     while (!glfwWindowShouldClose(window))
