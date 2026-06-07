@@ -1,5 +1,20 @@
-﻿  LoadingScreen.cpp
-glew32s.lib(glew.obj) : warning LNK4099: no se encontró PDB 'glew32s.pdb' con 'glew32s.lib(glew.obj)' o en 'C:\Users\DELL\Source\Repos\TOIS-Project-S\x64\Debug\glew32s.pdb'; se vinculará el objeto sin tener en cuenta información de depuración
+﻿  Hitbox.cpp
+  InputHandler.cpp
+  LoadingHelper.cpp
+  LoadingScreen.cpp
+  Main.cpp
+  MenuController.cpp
+  Mesh.cpp
+  Model.cpp
+C:\Users\CROSSHAIR\source\repos\Project-Tois-S\Model.cpp(210,31): warning C4267: 'inicializando': conversión de 'size_t' a 'unsigned int'; posible pérdida de datos
+  Scene.cpp
+  Shader.cpp
+  Skybox.cpp
+  Utils.cpp
+  WindowManager.cpp
+  Generando código...
+  LINK : no se encontró C:\Users\CROSSHAIR\source\repos\Project-Tois-S\x64\Debug\Project-Tois-S.exe o no lo generó el último vínculo incremental; ejecutando vínculo completo
+glew32s.lib(glew.obj) : warning LNK4099: no se encontró PDB 'glew32s.pdb' con 'glew32s.lib(glew.obj)' o en 'C:\Users\CROSSHAIR\source\repos\Project-Tois-S\x64\Debug\glew32s.pdb'; se vinculará el objeto sin tener en cuenta información de depuración
 LINK : warning LNK4098: la biblioteca predeterminada'LIBCMT' entra en conflicto con otras bibliotecas; use la biblioteca /NODEFAULTLIB:biblioteca
 LINK : warning LNK4098: la biblioteca predeterminada'MSVCRT' entra en conflicto con otras bibliotecas; use la biblioteca /NODEFAULTLIB:biblioteca
 LINK : warning LNK4217: "__glewBindBuffer" importa el símbolo "glew32s.lib(glew.obj)" definido en "LoadingScreen.obj" en la función ""void __cdecl DrawLoadingSpinner(class Shader &,float)" (?DrawLoadingSpinner@@YAXAEAVShader@@M@Z)"
@@ -43,4 +58,4 @@ LINK : warning LNK4217: "__glewUniform4f" importa el símbolo "glew32s.lib(glew.
 LINK : warning LNK4217: "__glewGenerateMipmap" importa el símbolo "glew32s.lib(glew.obj)" definido en "Main.obj" en la función ""private: bool __cdecl MenuRenderer::EnsureBackgroundTexture(void)" (?EnsureBackgroundTexture@MenuRenderer@@AEAA_NXZ)"
 LINK : warning LNK4286: "__glewGenerateMipmap" importa el símbolo "glew32s.lib(glew.obj)" definido en "Model.obj"
 LINK : warning LNK4286: "__glewGenerateMipmap" importa el símbolo "glew32s.lib(glew.obj)" definido en "Skybox.obj"
-  Project-Tois-S.vcxproj -> C:\Users\DELL\Source\Repos\TOIS-Project-S\x64\Debug\Project-Tois-S.exe
+  Project-Tois-S.vcxproj -> C:\Users\CROSSHAIR\source\repos\Project-Tois-S\x64\Debug\Project-Tois-S.exe
