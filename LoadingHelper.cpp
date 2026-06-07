@@ -65,6 +65,7 @@ GAssets ExecuteInteractiveLoading(GLFWwindow* window, Shader& loadingShader, GLu
                 }
                 
                 assets.GYGLTF = std::make_shared<Model>("Resources/Models/GLTF/Graveyard/Cementerio.gltf");
+                assets.GYHGLTF = std::make_shared<Model>("Resources/Models/GLTF/Hitbox/Hitbox.gltf");
                 assets.sphere = std::make_shared<Model>("Resources/Models/OBJ/sphere.obj");
                 loadedAssets = 4; 
                 loadingState = 4;

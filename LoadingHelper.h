@@ -27,6 +27,7 @@ struct GAssets {
     std::shared_ptr<Skybox> sphereSkybox;
     std::shared_ptr<Shader> emissiveShader;
     std::shared_ptr<Model> GYGLTF;
+    std::shared_ptr<Model> GYHGLTF;
     std::shared_ptr<Model> sphere;
 };
 

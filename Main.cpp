@@ -71,6 +71,7 @@ int main()
     Skybox& sphereSkybox = *loadedData.sphereSkybox;
     Shader& emissiveShader = *loadedData.emissiveShader;
     auto GRGTF = loadedData.GYGLTF;
+    auto GRGTF_Collider = loadedData.GYHGLTF;
     auto sphere = loadedData.sphere;
 
     // Estados de configuración de simulación originales
@@ -97,6 +98,8 @@ int main()
     skyboxShader.SetInt("skybox", 0);
 
     Scene scene;
+	GRGTF->collider = GRGTF_Collider->collider; // Asignamos el collider del modelo pesado al modelo ligero para usarlo en la escena
+
     if (FileExists("Resources/Models/OBJ/Sphere.obj")) {
         scene.SetLightSphere(sphere);
     }
@@ -110,6 +113,7 @@ int main()
     scene.AddLight({ LightType::Spot, camera.GetPosition(), camera.GetFront(), {1.0f, 0.92f, 0.75f}, 0.0f, false });
 
     scene.AddObject(GRGTF, { {5.0f, 0.0f, 45.0f}, {0.0f, 0.0f, 0.0f}, {0.8f, 0.8f, 0.8f} });
+
 
     // Armado de mallas de colisión nativas en la escena
     for (auto& obj : scene.GetObjects()) {
