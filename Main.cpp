@@ -22,7 +22,7 @@
 const int SCREEN_WIDTH = 1000;
 const int SCREEN_HEIGHT = 800;
 
-Camera camera(glm::vec3(0.0f, 10.0f, 0.0f));
+Camera camera(glm::vec3(3.0f, 1.0f, 35.0f));
 
 float deltaTime = 0.0f;
 float lastFrame = 0.0f;
@@ -235,7 +235,7 @@ int main()
         shader.SetFloat("spotCutOff", glm::cos(glm::radians(12.5f)));
         shader.SetFloat("spotOuterCutOff", glm::cos(glm::radians(17.5f)));
 
-        scene.Draw(shader, emissiveShader, camera);
+        scene.Draw(shader, emissiveShader, camera, widthR, heightR);
 
         // APARTADO COLLIDERS (SIN TOCAR)
         /*
@@ -254,7 +254,7 @@ int main()
         {
             hitboxShader.Use();
             glm::mat4 projection = glm::perspective(glm::radians(camera.GetZoom()),
-                static_cast<float>(framebufferWidth) / static_cast<float>(framebufferHeight),
+                static_cast<float>(widthR) / static_cast<float>(heightR),
                 0.1f,
                 100.0f);
 

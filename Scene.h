@@ -69,7 +69,7 @@ public:
     // =========================
     // RENDER
     // =========================
-    void Draw(Shader& shader, Shader& emissiveShader, Camera& camera);
+    void Draw(Shader& shader, Shader& emissiveShader, Camera& camera, float windowWidth, float windowHeight);
 
     void DrawHitboxes(Shader& hitboxShader, Camera& camera, const glm::mat4& projection);
 

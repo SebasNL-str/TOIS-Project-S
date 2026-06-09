@@ -65,7 +65,7 @@ void Scene::SetLight(std::size_t index, const Light& light)
     lights[index] = l;
 }
 
-void Scene::Draw(Shader& shader, Shader& emissiveShader, Camera& camera)
+void Scene::Draw(Shader& shader, Shader& emissiveShader, Camera& camera, float windowWidth, float windowHeight)
 {
     // =========================
     // VIEW / PROJECTION
@@ -73,7 +73,7 @@ void Scene::Draw(Shader& shader, Shader& emissiveShader, Camera& camera)
     glm::mat4 view = camera.GetViewMatrix();
     glm::mat4 projection = glm::perspective(
         glm::radians(camera.GetZoom()),
-        800.0f / 600.0f,
+        windowWidth / windowHeight,
         0.1f,
         1000.0f
     );
