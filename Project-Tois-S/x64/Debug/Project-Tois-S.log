@@ -1,4 +1,4 @@
 ﻿  Main.cpp
-C:\Users\DELL\source\repos\TOIS-Project-S\Main.cpp(235,60): warning C4244: 'argumento': conversión de 'int' a 'float'; posible pérdida de datos
-C:\Users\DELL\source\repos\TOIS-Project-S\Main.cpp(235,52): warning C4244: 'argumento': conversión de 'int' a 'float'; posible pérdida de datos
-  Project-Tois-S.vcxproj -> C:\Users\DELL\Source\Repos\TOIS-Project-S\x64\Debug\Project-Tois-S.exe
+C:\Users\CROSSHAIR\source\repos\Project-Tois-S\Main.cpp(297,60): warning C4244: 'argumento': conversión de 'int' a 'float'; posible pérdida de datos
+C:\Users\CROSSHAIR\source\repos\Project-Tois-S\Main.cpp(297,52): warning C4244: 'argumento': conversión de 'int' a 'float'; posible pérdida de datos
+  Project-Tois-S.vcxproj -> C:\Users\CROSSHAIR\source\repos\Project-Tois-S\x64\Debug\Project-Tois-S.exe

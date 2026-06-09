@@ -30,6 +30,7 @@ struct GAssets {
     std::shared_ptr<Model> GYGLTF;
     std::shared_ptr<Model> GYHGLTF;
     std::shared_ptr<Model> sphere;
+	std::shared_ptr<Model> Lantern;
 };
 
 // Ejecuta el bucle secuencial por estados de la pantalla de carga interactiva. || Runs the on-state sequential loop from the interactive loading-screen

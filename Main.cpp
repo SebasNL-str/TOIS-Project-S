@@ -71,9 +71,21 @@ int main()
     Shader& hitboxShader = *loadedData.hitboxShader;
     Skybox& sphereSkybox = *loadedData.sphereSkybox;
     Shader& emissiveShader = *loadedData.emissiveShader;
+
     auto GRGTF = loadedData.GYGLTF;
     auto GRGTF_Collider = loadedData.GYHGLTF;
     auto sphere = loadedData.sphere;
+	auto Lantern = loadedData.Lantern;
+    auto Lantern2 = std::make_shared<Model>(*Lantern);
+    auto Lantern3 = std::make_shared<Model>(*Lantern);
+    auto Lantern4 = std::make_shared<Model>(*Lantern);
+    auto Lantern5 = std::make_shared<Model>(*Lantern);
+    auto Lantern6 = std::make_shared<Model>(*Lantern);
+    auto Lantern7 = std::make_shared<Model>(*Lantern);
+    auto Lantern8 = std::make_shared<Model>(*Lantern);
+
+
+
 
     // Definir estados booleanos de simulacion original || Define original simulation boolean states
     bool hitboxDebug = false;
@@ -111,15 +123,65 @@ int main()
 
     // Agregar fuentes de luz puntuales y focales a la escena || Add point and spot light sources to the scene
     // scene.AddLight({ LightType::Point, {5.0f, 25.0f, 50.0f}, {0.0f, -1.0f, 0.0f}, {1.0f, 1.0f, 1.0f}, 10.0f, true });
+    scene.AddLight({ LightType::Point, {0.0f, 2.5f, 35.0f}, {0.0f, -1.0f, 0.0f}, {0.55f, 0.45f, 0.15f}, 2.5f, false });
+    scene.AddLight({ LightType::Point, {10.0f, 2.5f, 40.0f}, {0.0f, -1.0f, 0.0f}, {0.55f, 0.45f, 0.15f}, 2.5f, false });
+    scene.AddLight({ LightType::Point, {10.0f, 2.5f, 50.0f}, {0.0f, -1.0f, 0.0f}, {0.55f, 0.45f, 0.15f}, 2.5f, false });
+    scene.AddLight({ LightType::Point, {-3.5f, 2.5f, 59.5f}, {0.0f, -1.0f, 0.0f}, {0.55f, 0.45f, 0.15f}, 2.5f, false });
+    scene.AddLight({ LightType::Point, {-1.5f, 2.5f, 62.5f}, {0.0f, -1.0f, 0.0f}, {0.55f, 0.45f, 0.15f}, 1.0f, false });
+    scene.AddLight({ LightType::Point, {10.5f, 2.5f, 62.5f}, {0.0f, -1.0f, 0.0f}, {0.55f, 0.45f, 0.15f}, 1.0f, false });
+    scene.AddLight({ LightType::Point, {10.5f, 2.5f, 25.0f}, {0.0f, -1.0f, 0.0f}, {0.55f, 0.45f, 0.15f}, 1.0f, false });
+    scene.AddLight({ LightType::Point, {-1.5f, 2.5f, 25.0f}, {0.0f, -1.0f, 0.0f}, {0.55f, 0.45f, 0.15f}, 1.0f, false });
 
     // Directional light
     scene.AddLight({ LightType::Directional, {0.0f, 0.0f, 0.0f}, {-0.2f, -1.0f, -0.3f}, {0.45f, 0.55f, 0.70f}, 1.2f, false });
-
 
     std::size_t flashlightLightIndex = scene.GetLightCount();
     scene.AddLight({ LightType::Spot, camera.GetPosition(), camera.GetFront(), {1.0f, 0.92f, 0.75f}, 0.0f, false });
 
     scene.AddObject(GRGTF, { {5.0f, 0.0f, 45.0f}, {0.0f, 0.0f, 0.0f}, {0.8f, 0.8f, 0.8f} });
+    scene.AddObject(Lantern, { {0.0f, 0.0f, 35.0f}, {0.0f, 0.0f, 0.0f}, {1.0f, 1.0f, 1.0f} });
+
+    Transform& lanternTransform = scene.GetTransform(Lantern);
+    lanternTransform.uniformScale(0.0015f);
+
+    scene.AddObject(Lantern2, { {10.0f, 0.0f, 40.0f}, {0.0f, 0.0f, 0.0f}, {1.0f, 1.0f, 1.0f} });
+
+    Transform& lanternTransform2 = scene.GetTransform(Lantern2);
+    lanternTransform2.uniformScale(0.0015f);
+
+    scene.AddObject(Lantern3, { {10.0f, 0.0f, 50.0f}, {0.0f, 0.0f, 0.0f}, {1.0f, 1.0f, 1.0f} });
+
+    Transform& lanternTransform3 = scene.GetTransform(Lantern3);
+    lanternTransform3.uniformScale(0.0015f);
+
+
+    scene.AddObject(Lantern4, { {-3.5f, 0.0f, 59.0f}, {0.0f, 0.0f, 0.0f}, {1.0f, 1.0f, 1.0f} });
+
+    Transform& lanternTransform4 = scene.GetTransform(Lantern4);
+    lanternTransform4.uniformScale(0.0015f);
+
+    scene.AddObject(Lantern5, { {-1.5f, 0.0f, 62.5f}, {0.0f, 0.0f, 0.0f}, {1.0f, 1.0f, 1.0f} });
+
+    Transform& lanternTransform5 = scene.GetTransform(Lantern5);
+    lanternTransform5.uniformScale(0.0015f);
+
+    scene.AddObject(Lantern6, { {10.5f, 0.0f, 62.5f}, {0.0f, 0.0f, 0.0f}, {1.0f, 1.0f, 1.0f} });
+
+    Transform& lanternTransform6 = scene.GetTransform(Lantern6);
+    lanternTransform6.uniformScale(0.0015f);
+
+    scene.AddObject(Lantern7, { {10.5f, 0.0f, 25.0f}, {0.0f, 0.0f, 0.0f}, {1.0f, 1.0f, 1.0f} });
+
+    Transform& lanternTransform7 = scene.GetTransform(Lantern7);
+    lanternTransform7.uniformScale(0.0015f);
+
+    scene.AddObject(Lantern8, { {-1.5f, 0.0f, 25.0f}, {0.0f, 0.0f, 0.0f}, {1.0f, 1.0f, 1.0f} });
+
+    Transform& lanternTransform8 = scene.GetTransform(Lantern8);
+    lanternTransform8.uniformScale(0.0015f);
+
+
+
 
     // Construir estructuras nativas de colision por cada objeto || Build native collision structures for each object
     for (auto& obj : scene.GetObjects()) {

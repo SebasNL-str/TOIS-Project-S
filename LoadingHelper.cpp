@@ -64,6 +64,7 @@ GAssets ExecuteInteractiveLoading(GLFWwindow* window, Shader& loadingShader, GLu
             // Cargar modelos geometricos tridimensionales pesados || Load heavy three dimensional geometric models
             assets.GYGLTF = std::make_shared<Model>("Resources/Models/GLTF/Graveyard/Cementerio.gltf");
             assets.GYHGLTF = std::make_shared<Model>("Resources/Models/GLTF/Hitbox/Hitbox.gltf");
+			assets.Lantern = std::make_shared<Model>("Resources/Models/GLTF/Lantern/scene.gltf");
             assets.sphere = std::make_shared<Model>("Resources/Models/OBJ/sphere.obj");
             loadedAssets = 4;
             loadingState = 4;
