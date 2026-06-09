@@ -1,11 +1,13 @@
-#include <GL/glew.h> 
+// GL includes
+#include <GL/glew.h>
+#include <GLFW/glfw3.h>
 
+// std includes
 #include <vector>
 #include <string>
 #include <memory>
-#include <GLFW/glfw3.h>
 
-// Cabeceras de tu motor#
+// Project includes
 #include "LoadingScreen.h"
 #include "Shader.h"
 #include "SoundManager.h"
@@ -15,8 +17,7 @@
 #include "Menu.h"
 #include "Utils.h"
 
-
-// Estructura contenedora para empaquetar los punteros generados
+// Estructura contenedora para empaquetar los punteros generados || Pointers packages structure
 struct GAssets {
     std::shared_ptr<SoundManager> sound;
     std::shared_ptr<Shader> shader;
@@ -31,8 +32,7 @@ struct GAssets {
     std::shared_ptr<Model> sphere;
 };
 
-/**
- * @brief Ejecuta el bucle secuencial por estados de la pantalla de carga interactiva.
- * @return Retorna una estructura con todos los punteros de los objetos cargados en memoria.
- */
+// Ejecuta el bucle secuencial por estados de la pantalla de carga interactiva. || Runs the on-state sequential loop from the interactive loading-screen
+// return Retorna una estructura con todos los punteros de los objetos cargados en memoria. || Returns an structure with all memory loaded pointers
+
 GAssets ExecuteInteractiveLoading(GLFWwindow* window, Shader& loadingShader, GLuint barVAO, GLuint barVBO);
