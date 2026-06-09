@@ -1,10 +1,15 @@
 #include "Scene.h"
-#include <gtc/matrix_transform.hpp>
 #include "Transform.h"
 
+#include <gtc/matrix_transform.hpp>
+
+
+
+// Dibujar las cajas de colision de los objetos en la escena || Draw object collision boxes in the scene
 void Scene::DrawHitboxes(Shader& hitboxShader, Camera& camera, const glm::mat4& projection) {
     hitboxShader.Use();
-    for (auto& obj : objects) { // aquí sí usas tu vector interno de objetos
+    // Recorrer el contenedor interno de objetos || Loop through the internal objects container
+    for (auto& obj : objects) {
         glm::mat4 modelMatrix = obj.transform.getMatrix();
         DrawHitbox(obj.model->hitbox,
             hitboxShader,
@@ -15,41 +20,37 @@ void Scene::DrawHitboxes(Shader& hitboxShader, Camera& camera, const glm::mat4& 
     }
 }
 
-
-
+// Configurar el modelo de sombreado actual || Set the current shading model
 void Scene::SetShadingModel(ShadingModel model)
 {
     shadingModel = model;
 }
 
+// Registrar un nuevo objeto con sus transformaciones en la escena || Register a new object with its transformations in the scene
 void Scene::AddObject(std::shared_ptr<Model> model, const Transform& transform)
 {
     objects.push_back({ model, transform });
 }
 
-
-/*
-void Scene::SetLightDebugModel(std::shared_ptr<Model> model)
-{
-    lightDebugModel = model;
-}*/
-
+// Establecer la malla para la visualizacion de las luces || Set the mesh for light visualization
 void Scene::SetLightSphere(std::shared_ptr<Model> model)
 {
     lightSphere = model;
 }
 
-
+// Agregar una fuente de luz configurada a la escena || Add a configured light source to the scene
 void Scene::AddLight(const Light& light)
 {
     Light l = light;
 
+    // Normalizar vectores de direccion || Normalize direction vectors
     if (l.type == LightType::Directional || l.type == LightType::Spot)
         l.direction = glm::normalize(l.direction);
 
     lights.push_back(l);
 }
 
+// Actualizar los datos de una luz existente mediante su indice || Update an existing light data using its index
 void Scene::SetLight(std::size_t index, const Light& light)
 {
     if (index >= lights.size())
@@ -59,17 +60,17 @@ void Scene::SetLight(std::size_t index, const Light& light)
 
     Light l = light;
 
+    // Normalizar vectores de direccion || Normalize direction vectors
     if (l.type == LightType::Directional || l.type == LightType::Spot)
         l.direction = glm::normalize(l.direction);
 
     lights[index] = l;
 }
 
+// Realizar el bucle principal de renderizado de la escena || Perform the main scene rendering loop
 void Scene::Draw(Shader& shader, Shader& emissiveShader, Camera& camera, float windowWidth, float windowHeight)
 {
-    // =========================
-    // VIEW / PROJECTION
-    // =========================
+    // Calcular matrices de vista y proyeccion perspectiva || Calculate view and perspective projection matrices
     glm::mat4 view = camera.GetViewMatrix();
     glm::mat4 projection = glm::perspective(
         glm::radians(camera.GetZoom()),
@@ -78,23 +79,20 @@ void Scene::Draw(Shader& shader, Shader& emissiveShader, Camera& camera, float w
         1000.0f
     );
 
-    // =========================
-    // SHADER PRINCIPAL (ILUMINACIÓN)
-    // =========================
+    // Configurar estados y variables uniformes del shader de iluminacion || Configure states and uniform variables of the lighting shader
     shader.Use();
     shader.SetMat4("view", view);
     shader.SetMat4("projection", projection);
     shader.SetVec3("viewPos", camera.GetPosition());
 
-    // =========================
-    // LIGHTS
-    // =========================
+    // Limitar la cantidad maxima de luces procesadas || Limit the maximum amount of lights processed
     int lightCount = (int)lights.size();
     if (lightCount > MAX_LIGHTS)
         lightCount = MAX_LIGHTS;
 
     shader.SetInt("numLights", lightCount);
 
+    // Transferir datos estructurados de las luces al shader || Transfer structured light data to the shader
     for (int i = 0; i < lightCount; i++)
     {
         const Light& light = lights[i];
@@ -107,14 +105,13 @@ void Scene::Draw(Shader& shader, Shader& emissiveShader, Camera& camera, float w
         shader.SetFloat(base + "intensity", light.intensity);
     }
 
-    // =========================
-    // OBJECTS (ILUMINADOS)
-    // =========================
+    // Calcular matrices de transformacion y dibujar objetos || Calculate transformation matrices and draw objects
     for (auto& obj : objects)
     {
         glm::mat4 modelMat = glm::mat4(1.0f);
         modelMat = glm::translate(modelMat, obj.transform.position);
 
+        // Aplicar rotaciones en los ejes X, Y y Z || Apply rotations on X, Y and Z axes
         modelMat = glm::rotate(modelMat,
             glm::radians(obj.transform.rotation.x),
             glm::vec3(1, 0, 0));
@@ -131,16 +128,15 @@ void Scene::Draw(Shader& shader, Shader& emissiveShader, Camera& camera, float w
         obj.model->Draw();
     }
 
-    // =========================
-    // LIGHT VISUALIZATION (EMISSIVE SPHERES)
-    // =========================
+    // Configurar shader emisivo para las esferas de luz || Configure emissive shader for light spheres
     emissiveShader.Use();
     emissiveShader.SetMat4("view", view);
     emissiveShader.SetMat4("projection", projection);
 
+    // Dibujar representaciones graficas de los focos de luz || Draw graphical representations of light sources
     for (const Light& light : lights)
     {
-        if (lightSphere && light.drawSphere) // <- nuevo control por luz
+        if (lightSphere && light.drawSphere)
         {
             glm::mat4 modelMat = glm::mat4(1.0f);
             modelMat = glm::translate(modelMat, light.position);
@@ -154,4 +150,5 @@ void Scene::Draw(Shader& shader, Shader& emissiveShader, Camera& camera, float w
         }
     }
 }
+
 

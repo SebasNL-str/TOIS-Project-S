@@ -1,6 +1,7 @@
 #ifndef MENU_H
 #define MENU_H
 
+// std includes
 #include <algorithm>
 #include <cctype>
 #include <cstddef>
@@ -11,14 +12,19 @@
 #include <string>
 #include <vector>
 
+// GL includes
 #include <GL/glew.h>
 #include <glm.hpp>
+
+// SOIL2 include
 #include <SOIL2/SOIL2.h>
 
+// Project include
 #include "Shader.h"
 
 struct MenuSettings
 {
+    // Textos del menu || Menu texts
     std::string title = "TOIS PROJECT S";
     std::string subtitle = "MENU PRINCIPAL";
     std::string footer = "ESC: MENU  ENTER: SELECCIONAR";
@@ -28,6 +34,7 @@ struct MenuSettings
         "SALIR"
     };
 
+    // Colores de la interfaz || Interface colors
     glm::vec4 backgroundColor = glm::vec4(0.03f, 0.03f, 0.04f, 1.0f);
     glm::vec4 panelColor = glm::vec4(0.08f, 0.08f, 0.10f, 0.92f);
     glm::vec4 titleColor = glm::vec4(0.85f, 0.78f, 0.55f, 1.0f);
@@ -36,6 +43,7 @@ struct MenuSettings
     glm::vec4 selectedColor = glm::vec4(0.85f, 0.78f, 0.55f, 0.95f);
     glm::vec4 footerColor = glm::vec4(0.62f, 0.62f, 0.60f, 1.0f);
 
+    // Dimensiones y escalas visuales || Dimensions and visual scales
     GLfloat panelWidth = 430.0f;
     GLfloat titleScale = 4.0f;
     GLfloat subtitleScale = 2.0f;
@@ -49,6 +57,7 @@ struct MenuSettings
 class MenuRenderer
 {
 public:
+    // Constructor e inicializacion de variables || Constructor and variables initialization
     MenuRenderer() :
         shader("Resources/Shaders/menu.vs", "Resources/Shaders/menu.frag"),
         VAO(0),
@@ -62,6 +71,7 @@ public:
         backgroundLoadAttempted(false),
         backgroundTextureLoaded(false)
     {
+        // Generar y configurar VAO/VBO del panel || Generate and configure panel VAO/VBO
         glGenVertexArrays(1, &VAO);
         glGenBuffers(1, &VBO);
 
@@ -74,6 +84,7 @@ public:
 
         glBindVertexArray(0);
 
+        // Generar y configurar VAO/VBO del fondo || Generate and configure background VAO/VBO
         glGenVertexArrays(1, &backgroundVAO);
         glGenBuffers(1, &backgroundVBO);
 
@@ -88,14 +99,17 @@ public:
 
         glBindVertexArray(0);
 
+        // Inicializar fuente del texto || Initialize text font
         BuildFont();
     }
 
+    // Destructor || Destructor
     ~MenuRenderer()
     {
         Destroy();
     }
 
+    // Liberar recursos de OpenGL || Release OpenGL resources
     void Destroy()
     {
         if (VBO != 0)
@@ -129,6 +143,7 @@ public:
         }
     }
 
+    // Actualizar configuracion del menu || Update menu configuration
     void Configure(const MenuSettings& newSettings)
     {
         bool backgroundChanged = settings.backgroundImagePath != newSettings.backgroundImagePath ||
@@ -141,37 +156,45 @@ public:
         NormalizeSelection();
     }
 
+
+        // Obtener configuracion para editar || Get configuration to edit
     MenuSettings& EditSettings()
     {
         return settings;
     }
 
+    // Obtener configuracion de solo lectura || Get read-only configuration
     const MenuSettings& GetSettings() const
     {
         return settings;
     }
 
+    // Cambiar titulo del menu || Change menu title
     void SetTitle(const std::string& title)
     {
         settings.title = title;
     }
 
+    // Cambiar subtitulo del menu || Change menu subtitle
     void SetSubtitle(const std::string& subtitle)
     {
         settings.subtitle = subtitle;
     }
 
+    // Cambiar pie de pagina || Change footer
     void SetFooter(const std::string& footer)
     {
         settings.footer = footer;
     }
 
+    // Cambiar color de fondo || Change background color
     void SetBackgroundColor(const glm::vec4& color)
     {
         settings.backgroundColor = color;
         settings.useBackgroundImage = false;
     }
 
+    // Cambiar imagen de fondo || Change background image
     void SetBackgroundImage(const std::string& path)
     {
         settings.backgroundImagePath = path;
@@ -179,6 +202,7 @@ public:
         ResetBackgroundTexture();
     }
 
+    // Quitar imagen de fondo || Remove background image
     void ClearBackgroundImage()
     {
         settings.backgroundImagePath.clear();
@@ -186,12 +210,14 @@ public:
         ResetBackgroundTexture();
     }
 
+    // Cambiar lista de opciones || Change items list
     void SetItems(const std::vector<std::string>& items)
     {
         settings.items = items;
         NormalizeSelection();
     }
 
+    // Cambiar texto de una opcion por indice || Change item text by index
     void SetItemText(std::size_t index, const std::string& text)
     {
         if (index < settings.items.size())
@@ -200,27 +226,32 @@ public:
         }
     }
 
+    // Cambiar visibilidad || Change visibility
     void SetVisible(bool visible)
     {
         settings.visible = visible;
     }
 
+    // Comprobar si es visible || Check if visible
     bool IsVisible() const
     {
         return settings.visible;
     }
 
+    // Forzar indice de seleccion || Force selection index
     void SetSelectedIndex(int index)
     {
         selectedIndex = index;
         NormalizeSelection();
     }
 
+    // Obtener indice seleccionado || Get selected index
     int GetSelectedIndex() const
     {
         return selectedIndex;
     }
 
+    // Mover seleccion arriba o abajo || Move selection up or down
     void MoveSelection(int direction)
     {
         if (settings.items.empty())
@@ -233,80 +264,102 @@ public:
         selectedIndex = (selectedIndex + direction + itemCount) % itemCount;
     }
 
+    // Renderizar el menu completo || Render the entire menu
     void Render(int screenWidth, int screenHeight)
     {
+        // Salir si no es visible || Exit if not visible
         if (!settings.visible)
         {
             return;
         }
 
+        // Iniciar configuracion grafica || Begin graphic configuration
         Begin(screenWidth, screenHeight);
 
+        // Dibujar el fondo || Draw background
         DrawBackground();
 
+        // Calcular ancho del panel || Calculate panel width
         GLfloat panelWidth = std::min(settings.panelWidth, width - 40.0f);
         if (panelWidth < 260.0f)
         {
             panelWidth = width - 20.0f;
         }
 
+        // Calcular alto del panel segun las opciones || Calculate panel height based on items
         GLfloat panelHeight = 220.0f + static_cast<GLfloat>(settings.items.size()) * 46.0f;
         panelHeight = std::min(panelHeight, height - 40.0f);
 
+        // Centrar coordenadas del panel || Center panel coordinates
         GLfloat panelX = (width - panelWidth) * 0.5f;
         GLfloat panelY = (height - panelHeight) * 0.5f;
 
+        // Dibujar caja del panel || Draw panel box
         DrawRect(panelX, panelY, panelWidth, panelHeight, settings.panelColor);
 
+        // Dibujar titulo y subtitulo || Draw title and subtitle
         DrawCenteredText(settings.title, panelX, panelY + 34.0f, panelWidth, settings.titleScale, settings.titleColor);
         DrawCenteredText(settings.subtitle, panelX, panelY + 82.0f, panelWidth, settings.subtitleScale, settings.textColor);
 
+        // Configurar posiciones de la lista || Configure list positions
         GLfloat itemY = panelY + 130.0f;
         GLfloat itemHeight = 34.0f;
         GLfloat itemPadding = 28.0f;
 
+        // Dibujar cada opcion de la lista || Draw each item from the list
         for (std::size_t i = 0; i < settings.items.size(); ++i)
         {
             GLfloat rowY = itemY + static_cast<GLfloat>(i) * 46.0f;
             bool selected = static_cast<int>(i) == selectedIndex;
 
+            // Dibujar indicador si la opcion esta seleccionada || Draw indicator if item is selected
             if (selected)
             {
                 DrawRect(panelX + itemPadding, rowY - 8.0f, panelWidth - itemPadding * 2.0f, itemHeight, settings.selectedColor);
             }
 
+            // Dibujar texto de la opcion || Draw item text
             DrawCenteredText(settings.items[i], panelX, rowY, panelWidth, settings.itemScale, selected ? settings.selectedTextColor : settings.textColor);
         }
 
+        // Dibujar pie de pagina || Draw footer
         DrawCenteredText(settings.footer, panelX, panelY + panelHeight - 40.0f, panelWidth, settings.footerScale, settings.footerColor);
 
+        // Restaurar estado grafico || Restore graphic state
         End();
     }
 
+    // Configurar estados de OpenGL para el menu || Configure OpenGL states for the menu
     void Begin(int screenWidth, int screenHeight)
     {
+        // Forzar dimensiones minimas validas || Force minimum valid dimensions
         width = static_cast<GLfloat>(screenWidth > 0 ? screenWidth : 1);
         height = static_cast<GLfloat>(screenHeight > 0 ? screenHeight : 1);
 
+        // Desactivar profundidad y activar transparencia || Disable depth and enable blending
         glDisable(GL_DEPTH_TEST);
         glDepthMask(GL_FALSE);
         glEnable(GL_BLEND);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
+        // Activar shader || Use shader
         shader.Use();
     }
 
+    // Restaurar configuracion original de OpenGL || Restore original OpenGL configuration
     void End()
     {
         glDepthMask(GL_TRUE);
         glEnable(GL_DEPTH_TEST);
     }
 
+    // Dibujar rectangulo con color RGB || Draw rectangle with RGB color
     void DrawRect(GLfloat x, GLfloat y, GLfloat w, GLfloat h, const glm::vec3& color)
     {
         DrawRect(x, y, w, h, glm::vec4(color, 1.0f));
     }
 
+    // Dibujar rectangulo con color RGBA || Draw rectangle with RGBA color
     void DrawRect(GLfloat x, GLfloat y, GLfloat w, GLfloat h, const glm::vec4& color)
     {
         std::vector<GLfloat> vertices;
@@ -314,25 +367,31 @@ public:
         DrawVertices(vertices, color);
     }
 
+    // Dibujar texto con color RGB || Draw text with RGB color
     void DrawText(const std::string& text, GLfloat x, GLfloat y, GLfloat scale, const glm::vec3& color)
     {
         DrawText(text, x, y, scale, glm::vec4(color, 1.0f));
     }
 
+    // Dibujar texto caracter por caracter || Draw text character by character
     void DrawText(const std::string& text, GLfloat x, GLfloat y, GLfloat scale, const glm::vec4& color)
     {
         GLfloat cursorX = x;
 
+        // Recorrer cada caracter de la cadena || Loop through each character of the string
         for (char rawChar : text)
         {
+            // Convertir letra a mayuscula || Convert letter to uppercase
             char c = static_cast<char>(std::toupper(static_cast<unsigned char>(rawChar)));
 
+            // Avanzar espacio en blanco || Advance blank space
             if (c == ' ')
             {
                 cursorX += 6.0f * scale;
                 continue;
             }
 
+            // Buscar el caracter en el mapa de la fuente || Look up character in the font map
             auto glyph = font.find(c);
             if (glyph == font.end())
             {
@@ -342,10 +401,12 @@ public:
 
             std::vector<GLfloat> vertices;
 
+            // Procesar matriz del glifo (7 filas x 5 columnas) || Process glyph matrix (7 rows x 5 columns)
             for (int row = 0; row < 7; row++)
             {
                 for (int col = 0; col < 5; col++)
                 {
+                    // Crear un pixel por cada bit activo || Create a pixel for each active bit
                     if (glyph->second[row][col] == '1')
                     {
                         PushQuad(vertices, cursorX + col * scale, y + row * scale, scale, scale);
@@ -353,17 +414,20 @@ public:
                 }
             }
 
+            // Dibujar el caracter procesado || Draw the processed character
             DrawVertices(vertices, color);
             cursorX += 6.0f * scale;
         }
     }
 
+    // Calcular el ancho total del texto en pixeles || Calculate total text width in pixels
     GLfloat MeasureText(const std::string& text, GLfloat scale)
     {
         return static_cast<GLfloat>(text.size()) * 6.0f * scale;
     }
 
 private:
+    // Variables miembros privadas || Private member variables
     Shader shader;
     GLuint VAO;
     GLuint VBO;
@@ -379,6 +443,7 @@ private:
     bool backgroundTextureLoaded;
     std::map<char, std::vector<std::string>> font;
 
+    // Ajustar el indice seleccionado dentro de los limites de la lista || Adjust selected index within items list limits
     void NormalizeSelection()
     {
         if (settings.items.empty())
@@ -398,6 +463,7 @@ private:
         }
     }
 
+    // Dibujar texto centrado horizontalmente en un area || Draw horizontally centered text in an area
     void DrawCenteredText(const std::string& text, GLfloat x, GLfloat y, GLfloat areaWidth, GLfloat scale, const glm::vec4& color)
     {
         GLfloat textWidth = MeasureText(text, scale);
@@ -405,6 +471,7 @@ private:
         DrawText(text, textX, y, scale, color);
     }
 
+    // Dibujar el fondo del menu (imagen o color solido) || Draw menu background (image or solid color)
     void DrawBackground()
     {
         if (settings.useBackgroundImage)
@@ -419,6 +486,7 @@ private:
         DrawRect(0.0f, 0.0f, width, height, settings.backgroundColor);
     }
 
+    // Liberar textura actual y limpiar variables de control || Release current texture and clear control variables
     void ResetBackgroundTexture()
     {
         if (backgroundTexture != 0)
@@ -432,13 +500,16 @@ private:
         backgroundTextureLoaded = false;
     }
 
+    // Asegurar la carga correcta de la imagen de fondo en OpenGL || Ensure correct background image loading into OpenGL
     bool EnsureBackgroundTexture()
     {
+        // Validar si la textura ya se encuentra cargada || Validate if texture is already loaded
         if (backgroundTextureLoaded && loadedBackgroundPath == settings.backgroundImagePath)
         {
             return backgroundTexture != 0;
         }
 
+        // Validar si ya se intento cargar la textura previamente || Validate if texture loading was already attempted
         if (backgroundLoadAttempted && loadedBackgroundPath == settings.backgroundImagePath)
         {
             return backgroundTexture != 0;
@@ -448,12 +519,14 @@ private:
         loadedBackgroundPath = settings.backgroundImagePath;
         backgroundLoadAttempted = true;
 
+        // Comprobar si la ruta de la imagen esta vacia || Check if image path is empty
         if (settings.backgroundImagePath.empty())
         {
             std::cout << "MENU::BACKGROUND_IMAGE_EMPTY - usa SetBackgroundImage(\"Resources/MenuBackground/menu.jpg\") o cambia MenuSettings::backgroundImagePath." << std::endl;
             return false;
         }
 
+        // Verificar existencia fisica del archivo || Verify physical existence of the file
         std::ifstream imageFile(settings.backgroundImagePath.c_str(), std::ios::binary);
         if (!imageFile.good())
         {
@@ -468,6 +541,7 @@ private:
         int imageHeight = 0;
         int imageChannels = 0;
 
+        // Cargar los pixeles del archivo con SOIL || Load file pixels using SOIL
         unsigned char* data = SOIL_load_image(settings.backgroundImagePath.c_str(), &imageWidth, &imageHeight, &imageChannels, SOIL_LOAD_RGBA);
 
         if (!data)
@@ -476,6 +550,7 @@ private:
             return false;
         }
 
+        // Generar y configurar textura bidimensional de OpenGL || Generate and configure OpenGL 2D texture
         glGenTextures(1, &backgroundTexture);
         glBindTexture(GL_TEXTURE_2D, backgroundTexture);
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, imageWidth, imageHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
@@ -486,6 +561,7 @@ private:
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
         glBindTexture(GL_TEXTURE_2D, 0);
 
+        // Liberar buffer temporal de pixeles || Free temporary pixels buffer
         free(data);
 
         backgroundTextureLoaded = true;
@@ -494,8 +570,11 @@ private:
         return true;
     }
 
+
+    // Renderizar la textura de fondo en la pantalla || Render the background texture on the screen
     void DrawBackgroundTexture()
     {
+        // Coordenadas de los triangulos con mapeo UV || Triangle coordinates with UV mapping
         GLfloat vertices[] = {
             -1.0f,  1.0f, 0.0f, 1.0f,
             -1.0f, -1.0f, 0.0f, 0.0f,
@@ -505,23 +584,28 @@ private:
              1.0f,  1.0f, 1.0f, 1.0f
         };
 
+        // Activar shader y enviar variables uniformes || Activate shader and send uniform variables
         shader.Use();
         glUniform1i(glGetUniformLocation(shader.ID, "useTexture"), GL_TRUE);
         glUniform1i(glGetUniformLocation(shader.ID, "uiTexture"), 0);
 
+        // Enlazar textura de fondo || Bind background texture
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, backgroundTexture);
 
+        // Enviar datos de vertices y dibujar triangulos || Send vertex data and draw triangles
         glBindVertexArray(backgroundVAO);
         glBindBuffer(GL_ARRAY_BUFFER, backgroundVBO);
         glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_DYNAMIC_DRAW);
         glDrawArrays(GL_TRIANGLES, 0, 6);
         glBindVertexArray(0);
 
+        // Restaurar estado de la textura y shader || Restore texture and shader state
         glBindTexture(GL_TEXTURE_2D, 0);
         glUniform1i(glGetUniformLocation(shader.ID, "useTexture"), GL_FALSE);
     }
 
+    // Convertir coordenadas de pixeles a espacio normalizado (NDC) || Convert pixel coordinates to normalized device coordinates (NDC)
     void PushQuad(std::vector<GLfloat>& vertices, GLfloat x, GLfloat y, GLfloat w, GLfloat h)
     {
         GLfloat left = (x / width) * 2.0f - 1.0f;
@@ -538,9 +622,11 @@ private:
             right, top
         };
 
+        // Insertar los puntos en el arreglo de vertices || Insert points into the vertices array
         vertices.insert(vertices.end(), quad, quad + 12);
     }
 
+    // Dibujar los vertices de los rectangulos generados || Draw the vertices of the generated rectangles
     void DrawVertices(const std::vector<GLfloat>& vertices, const glm::vec4& color)
     {
         if (vertices.empty())
@@ -548,10 +634,12 @@ private:
             return;
         }
 
+        // Configurar shader para color plano || Configure shader for flat color
         shader.Use();
         glUniform1i(glGetUniformLocation(shader.ID, "useTexture"), GL_FALSE);
         glUniform4f(glGetUniformLocation(shader.ID, "uiColor"), color.r, color.g, color.b, color.a);
 
+        // Cargar buffer dinamico y dibujar la geometria || Load dynamic buffer and draw geometry
         glBindVertexArray(VAO);
         glBindBuffer(GL_ARRAY_BUFFER, VBO);
         glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(GLfloat), vertices.data(), GL_DYNAMIC_DRAW);
@@ -559,6 +647,7 @@ private:
         glBindVertexArray(0);
     }
 
+    // Definir mapas de bits para cada caracter de la fuente || Define bit maps for each font character
     void BuildFont()
     {
         font['A'] = { "01110", "10001", "10001", "11111", "10001", "10001", "10001" };

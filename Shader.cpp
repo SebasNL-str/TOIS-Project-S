@@ -11,10 +11,7 @@ Shader::Shader(
     const char* fragmentPath
 )
 {
-    // =========================
-    // LEER ARCHIVOS
-    // =========================
-
+    // Cargar codigo fuente desde los archivos de disco || Load source code from disk files
     std::ifstream vFile(vertexPath);
     std::ifstream fFile(fragmentPath);
 
@@ -39,6 +36,7 @@ Shader::Shader(
     std::cout << "Vertex path: " << vertexPath << std::endl;
     std::cout << "Fragment path: " << fragmentPath << std::endl;
 
+    // Verificar si los archivos se abrieron correctamente || Check if files were opened correctly
     if (!vFile.is_open())
     {
         std::cout << "ERROR vertex shader no abre: "
@@ -51,12 +49,9 @@ Shader::Shader(
             << fragmentPath << std::endl;
     }
 
-    // =========================
-    // VERTEX SHADER
-    // =========================
-
     GLuint vertex;
 
+    // Crear y compilar el Vertex Shader de OpenGL || Create and compile the OpenGL Vertex Shader
     vertex =
         glCreateShader(GL_VERTEX_SHADER);
 
@@ -69,12 +64,9 @@ Shader::Shader(
 
     glCompileShader(vertex);
 
-    // =========================
-    // FRAGMENT SHADER
-    // =========================
-
     GLuint fragment;
 
+    // Crear y compilar el Fragment Shader de OpenGL || Create and compile the OpenGL Fragment Shader
     fragment =
         glCreateShader(GL_FRAGMENT_SHADER);
 
@@ -87,10 +79,7 @@ Shader::Shader(
 
     glCompileShader(fragment);
 
-    // =========================
-    // PROGRAM
-    // =========================
-
+    // Crear el programa de shader y enlazar componentes || Create shader program and link components
     ID = glCreateProgram();
 
     glAttachShader(ID, vertex);
@@ -98,10 +87,12 @@ Shader::Shader(
 
     glLinkProgram(ID);
 
+    // Liberar memoria de los shaders individuales || Free individual shaders memory
     glDeleteShader(vertex);
     glDeleteShader(fragment);
 }
 
+// Enviar un valor flotante al shader uniforme || Send a float value to the uniform shader
 void Shader::SetFloat(const std::string& name, float value)
 {
     glUniform1f(
@@ -110,6 +101,7 @@ void Shader::SetFloat(const std::string& name, float value)
     );
 }
 
+// Enviar un vector de 3 componentes al shader uniforme || Send a 3-component vector to the uniform shader
 void Shader::SetVec3(const std::string& name, const glm::vec3& value)
 {
     glUniform3f(
@@ -120,11 +112,13 @@ void Shader::SetVec3(const std::string& name, const glm::vec3& value)
     );
 }
 
+// Activar el programa de shader actual || Activate the current shader program
 void Shader::Use()
 {
     glUseProgram(ID);
 }
 
+// Enviar una matriz de 4x4 al shader uniforme || Send a 4x4 matrix to the uniform shader
 void Shader::SetMat4(
     const std::string& name,
     glm::mat4 matrix
@@ -141,6 +135,7 @@ void Shader::SetMat4(
     );
 }
 
+// Enviar un valor entero al shader uniforme || Send an integer value to the uniform shader
 void Shader::SetInt(
     const std::string& name,
     int value
@@ -155,6 +150,8 @@ void Shader::SetInt(
     );
 }
 
+// Enviar un valor booleano al shader uniforme || Send a boolean value to the uniform shader
 void Shader::SetBool(const std::string& name, bool value) const {
     glUniform1i(glGetUniformLocation(ID, name.c_str()), (int)value);
 }
+

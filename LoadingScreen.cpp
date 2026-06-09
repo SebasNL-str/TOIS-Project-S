@@ -1,5 +1,6 @@
 #include "LoadingScreen.h"
 
+// Inicializar los buffers para la barra de progreso || Initialize progress bar buffers
 void InitProgressBar(GLuint& barVAO, GLuint& barVBO) {
     glGenVertexArrays(1, &barVAO);
     glGenBuffers(1, &barVBO);
@@ -18,14 +19,16 @@ void InitProgressBar(GLuint& barVAO, GLuint& barVBO) {
     glEnableVertexAttribArray(0);
 }
 
+// Dibujar los componentes de la barra de progreso || Draw progress bar components
 void DrawProgressBar(GLuint barVAO, GLuint barVBO, Shader& loadingShader, float progress) {
     float barWidth = 0.8f;
     float barHeight = 0.05f;
 
+    // Limitar el rango del progreso || Clamp progress range
     if (progress > 1.0f) progress = 1.0f;
     if (progress < 0.0f) progress = 0.0f;
 
-    // 1. FONDO GRIS
+    // Actualizar vertices y dibujar el fondo gris || Update vertices and draw grey background
     float backgroundVertices[] = {
         -barWidth / 2.0f, -0.8f,
         -barWidth / 2.0f, -0.8f + barHeight,
@@ -39,7 +42,7 @@ void DrawProgressBar(GLuint barVAO, GLuint barVBO, Shader& loadingShader, float 
     glBindVertexArray(barVAO);
     glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
 
-    // 2. RELLENO VERDE
+    // Actualizar vertices y dibujar el relleno beige || Update vertices and draw beige filling
     float filled = barWidth * progress;
     float startX = -barWidth / 2.0f;
     float barVertices[] = {
@@ -53,14 +56,14 @@ void DrawProgressBar(GLuint barVAO, GLuint barVBO, Shader& loadingShader, float 
     glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
 }
 
+// Renderizar el indicador circular animado || Render the animated circular spinner
 void DrawLoadingSpinner(Shader& loadingShader, float time) {
     const int NUM_DOTS = 16;
 
-    // Configuración de tamaño (puedes aumentar el radius si lo deseas)
     float radius = 0.30f;
     glm::vec2 center(0.0f, 0.0f);
 
-    // Obtener el tamaño del Viewport actual para calcular el Aspect Ratio
+    // Obtener dimensiones actuales del viewport || Get current viewport dimensions
     GLint viewport[4];
     glGetIntegerv(GL_VIEWPORT, viewport);
     float width = static_cast<float>(viewport[2]);
@@ -69,20 +72,20 @@ void DrawLoadingSpinner(Shader& loadingShader, float time) {
 
     glEnable(GL_PROGRAM_POINT_SIZE);
 
-    // Creamos espacio para 9 puntos (8 del anillo + 1 central) = 18 flotantes
     float spinnerVertices[(NUM_DOTS + 1) * 2];
 
-    // 1. Calcular los 8 puntos del anillo perimetral
+    // Calcular posiciones de los puntos perimetrales || Calculate perimeter dots positions
     for (int i = 0; i < NUM_DOTS; i++) {
         float angle = i * (2.0f * glm::pi<float>() / NUM_DOTS);
         spinnerVertices[i * 2] = center.x + (cos(angle) * radius) / aspectRatio;
         spinnerVertices[i * 2 + 1] = center.y + sin(angle) * radius;
     }
 
-    // 2. AGREGAR EL PUNTO CENTRAL EN LA ÚLTIMA POSICIÓN (Índice 8)
-    spinnerVertices[NUM_DOTS * 2] = 0.0f; // X central
-    spinnerVertices[NUM_DOTS * 2 + 1] = 0.0f; // Y central
+    // Asignar coordenadas para el punto del centro || Assign coordinates for the center dot
+    spinnerVertices[NUM_DOTS * 2] = 0.0f;
+    spinnerVertices[NUM_DOTS * 2 + 1] = 0.0f;
 
+    // Crear y cargar buffers locales temporales || Create and load temporary local buffers
     GLuint spinnerVAO, spinnerVBO;
     glGenVertexArrays(1, &spinnerVAO);
     glGenBuffers(1, &spinnerVBO);
@@ -94,56 +97,52 @@ void DrawLoadingSpinner(Shader& loadingShader, float time) {
     glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);
 
+    // Enviar variables uniformes al shader || Send uniform variables to the shader
     loadingShader.Use();
-
-    // Enviamos los Uniforms de control
     loadingShader.SetBool("isSpinner", true);
     loadingShader.SetFloat("globalTime", time);
-    loadingShader.SetVec3("barColor", glm::vec3(0.95f, 0.87f, 0.73f)); // Beige
-
-    // Pasamos el tamaño de la ventana y el Aspect Ratio al Shader
+    loadingShader.SetVec3("barColor", glm::vec3(0.95f, 0.87f, 0.73f));
     loadingShader.SetVec3("screenSize", glm::vec3(width, height, aspectRatio));
 
-    // Dibujamos los 8 puntos del anillo perimetral (con tamaño normal)
+    // Dibujar anillo exterior de puntos || Draw external dots ring
     glPointSize(18.0f);
     glDrawArrays(GL_POINTS, 0, NUM_DOTS);
 
-    // Dibujamos ÚNICAMENTE el punto central con un tamaño gigante para albergar la S
-    glPointSize(160.0f); // Si quieres la S más grande, aumenta este valor (ej. 200.0f)
+    // Dibujar el punto central gigante || Draw the giant central dot
+    glPointSize(160.0f);
     glDrawArrays(GL_POINTS, NUM_DOTS, 1);
 
+    // Desactivar bandera y liberar recursos de memoria || Disable flag and release memory resources
     loadingShader.SetBool("isSpinner", false);
-
     glDeleteBuffers(1, &spinnerVBO);
     glDeleteVertexArrays(1, &spinnerVAO);
 }
 
-
-
-
+// Actualizar el bucle de la ventana de carga || Update the loading window loop
 void UpdateLoadingScreen(GLFWwindow* window, GLuint barVAO, GLuint barVBO, Shader& loadingShader, int loadedAssets, int totalAssets) {
     int width, height;
     glfwGetFramebufferSize(window, &width, &height);
     glViewport(0, 0, width, height);
 
+    // Calcular la proporcion de la barra || Calculate bar ratio
     float progress = (totalAssets > 0) ? (float)loadedAssets / (float)totalAssets : 0.0f;
 
+    // Limpiar buffers de color y profundidad || Clear color and depth buffers
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+    // Desactivar pruebas graficas 3D de fondo || Disable background 3D graphic tests
     glDisable(GL_DEPTH_TEST);
     glDisable(GL_CULL_FACE);
 
-    // 1. Dibujar la barra normal
+    // Renderizar barra y spinner decorativo || Render bar and decorative spinner
     DrawProgressBar(barVAO, barVBO, loadingShader, progress);
-
-    // 2. Dibujar el Spinner usando el tiempo transcurrido de GLFW
     float currentTime = static_cast<float>(glfwGetTime());
     DrawLoadingSpinner(loadingShader, currentTime);
 
+    // Restaurar pruebas graficas y refrescar buffers || Restore graphic tests and swap buffers
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_CULL_FACE);
-
     glfwSwapBuffers(window);
     glfwPollEvents();
 }

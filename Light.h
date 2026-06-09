@@ -10,7 +10,7 @@
 struct Light {
     LightType type; // Tipo || Type
     glm::vec3 position; // Posicion
-    glm::vec3 direction; // Direccion (de la luz) || Light's direction
+    glm::vec3 direction; // Direccion (de la luz) || Lights direction
     glm::vec3 color;
     float intensity;
 

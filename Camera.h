@@ -43,7 +43,7 @@ public:
         this->updateCameraVectors();
     }
 
-    // Forzar posicion || Function's name self-explanatory
+    // Forzar posicion || Functions name self-explanatory
     void ForcePosition(const glm::vec3& pos)
     {
         this->position = pos;

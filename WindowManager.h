@@ -1,8 +1,13 @@
 #pragma once
+// GL include
 #define GLEW_STATIC
 #include <GL/glew.h>
-#include <GLFW/glfw3.h>
+
+// std include
 #include <string>
+
+// GLFW include
+#include <GLFW/glfw3.h>
 
 // Inicializa GLFW, calcula el tamaño de pantalla completa y crea la ventana
 GLFWwindow* InitWindow(int& widthR, int& heightR, const std::string& title);

@@ -1,7 +1,13 @@
 #pragma once
-#include <GL/glew.h>
+
+// std include
 #include <vector>
 #include <string>
+
+// GL include
+#include <GL/glew.h>
+
+// Project includes
 #include "Shader.h"
 #include "Camera.h"
 
@@ -15,7 +21,7 @@ public:
     // Cubemap
     Skybox(const std::vector<std::string>& faces);
 
-    // Esfera
+    // Esfera || Sphere
     Skybox(const std::string& texturePath, SkyboxType type);
 
     void Draw(Shader& shader, Camera& camera, float width, float height);
@@ -27,12 +33,12 @@ private:
     GLuint cubemapTexture;
     GLuint VAO, VBO;
 
-    // --- Esfera ---
+    // --- Esfera || Sphere ---
     GLuint sphereTexture;
     GLuint sphereVAO, sphereVBO, sphereEBO;
     GLsizei sphereIndexCount = 0;
 
-    // Métodos
+    // Métodos || Methods
     GLuint loadCubemap(const std::vector<std::string>& faces);
     GLuint loadTexture2D(const std::string& path);
     void setupCube();

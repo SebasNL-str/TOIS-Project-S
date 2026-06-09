@@ -2,7 +2,7 @@
 
 enum class ShadingModel
 {
-    Lambert,      // difuso simple
-    Phong,        // specular clásico
-    BlinnPhong    // más moderno
+    Lambert,      // Difuso simple || Simple diffuse
+    Phong,        // Especular clásico || Classic specular
+    BlinnPhong    // Más moderno || Modern
 };

@@ -2,7 +2,7 @@
 #include "Camera.h"
 #include "MenuController.h"
 
-// Traemos las globales necesarias para procesar movimientos de cámara y menús
+// Vinculacion externa de variables para el control del estado global || External linking of variables for global state control
 extern Camera camera;
 extern float deltaTime;
 extern bool gameStarted;
@@ -12,10 +12,12 @@ extern float lastX;
 extern float lastY;
 extern MenuScreen currentMenuScreen;
 
+// Procesar los comandos de entrada durante el estado de juego || Process input commands during gameplay state
 void processGameplayInput(GLFWwindow* window, bool& flashlightEnabled)
 {
     static bool fWasPressed = false;
 
+    // Control de traslacion de la camara en primera persona || First person camera translation control
     if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
         camera.ProcessKeyboard(FORWARD, deltaTime);
     if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
@@ -25,6 +27,7 @@ void processGameplayInput(GLFWwindow* window, bool& flashlightEnabled)
     if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
         camera.ProcessKeyboard(RIGHT, deltaTime);
 
+    // Deteccion por flanco de la tecla de linterna || Edge detection for the flashlight key
     bool fPressed = glfwGetKey(window, GLFW_KEY_F) == GLFW_PRESS;
     if (fPressed && !fWasPressed)
     {
@@ -33,6 +36,7 @@ void processGameplayInput(GLFWwindow* window, bool& flashlightEnabled)
     fWasPressed = fPressed;
 }
 
+// Procesar la navegacion del usuario dentro de la interfaz || Process user navigation inside the interface
 void processMenuInput(GLFWwindow* window, MenuRenderer& menu, SoundManager& sound, bool& hitboxDebug)
 {
     static bool escWasPressed = false;
@@ -40,6 +44,7 @@ void processMenuInput(GLFWwindow* window, MenuRenderer& menu, SoundManager& soun
     static bool downWasPressed = false;
     static bool enterWasPressed = false;
 
+    // Gestion de la tecla de escape para volver o alternar el menu || Management of escape key to return or toggle the menu
     bool escPressed = glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS;
     if (escPressed && !escWasPressed)
     {
@@ -60,6 +65,7 @@ void processMenuInput(GLFWwindow* window, MenuRenderer& menu, SoundManager& soun
 
     if (!menuOpen) return;
 
+    // Capturar flancos de navegacion y seleccion de la interfaz || Capture navigation and selection edges of the interface
     bool upPressed = glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS || glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS;
     bool downPressed = glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS || glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS;
     bool enterPressed = glfwGetKey(window, GLFW_KEY_ENTER) == GLFW_PRESS || glfwGetKey(window, GLFW_KEY_KP_ENTER) == GLFW_PRESS || glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS;
@@ -67,10 +73,12 @@ void processMenuInput(GLFWwindow* window, MenuRenderer& menu, SoundManager& soun
     if (upPressed && !upWasPressed) menu.MoveSelection(-1);
     if (downPressed && !downWasPressed) menu.MoveSelection(1);
 
+    // Procesar las acciones correspondientes al presionar enter || Process corresponding actions upon pressing enter
     if (enterPressed && !enterWasPressed)
     {
         if (currentMenuScreen == MenuScreen::Main)
         {
+            // Acciones del menu principal || Main menu actions
             switch (menu.GetSelectedIndex())
             {
             case 0:
@@ -88,6 +96,7 @@ void processMenuInput(GLFWwindow* window, MenuRenderer& menu, SoundManager& soun
         }
         else if (currentMenuScreen == MenuScreen::Settings)
         {
+            // Acciones del menu de configuraciones || Settings menu actions
             int selectedIndex = menu.GetSelectedIndex();
             switch (selectedIndex)
             {
@@ -113,14 +122,17 @@ void processMenuInput(GLFWwindow* window, MenuRenderer& menu, SoundManager& soun
     enterWasPressed = enterPressed;
 }
 
+// Funcion callback para el calculo de la orientacion del raton || Callback function for mouse orientation calculation
 void mouse_callback(GLFWwindow* window, double xpos, double ypos)
 {
+    // Ignorar si el menu esta activo o el juego no ha iniciado || Ignore if menu is active or game has not started
     if (menuOpen || !gameStarted)
     {
         firstMouse = true;
         return;
     }
 
+    // Inicializar coordenadas en el primer movimiento || Initialize coordinates on first movement
     if (firstMouse)
     {
         lastX = static_cast<float>(xpos);
@@ -128,11 +140,13 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos)
         firstMouse = false;
     }
 
+    // Calcular diferencias de desplazamiento relativo || Calculate relative displacement offsets
     float xoffset = static_cast<float>(xpos) - lastX;
     float yoffset = lastY - static_cast<float>(ypos);
 
     lastX = static_cast<float>(xpos);
     lastY = static_cast<float>(ypos);
 
+    // Enviar deltas para actualizar rotaciones de la camara || Send deltas to update camera rotations
     camera.ProcessMouseMovement(xoffset, yoffset);
 }
