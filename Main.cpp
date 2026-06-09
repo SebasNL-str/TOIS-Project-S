@@ -126,6 +126,7 @@ int main()
 
     while (!glfwWindowShouldClose(window))
     {
+		updateFPS(window);
         int framebufferWidth = SCREEN_WIDTH;
         int framebufferHeight = SCREEN_HEIGHT;
         glfwGetFramebufferSize(window, &framebufferWidth, &framebufferHeight);
