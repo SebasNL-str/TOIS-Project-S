@@ -84,6 +84,7 @@ void Scene::Draw(Shader& shader, Shader& emissiveShader, Camera& camera, float w
     shader.SetMat4("view", view);
     shader.SetMat4("projection", projection);
     shader.SetVec3("viewPos", camera.GetPosition());
+    fogSettings.Apply(shader);
 
     // Limitar la cantidad maxima de luces procesadas || Limit the maximum amount of lights processed
     int lightCount = (int)lights.size();

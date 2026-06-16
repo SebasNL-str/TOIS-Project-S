@@ -15,6 +15,7 @@
 #include "Transform.h"
 #include "Light.h"
 #include "ShadingModel.h"
+#include "FogSettings.h"
 
 // Numero maximo de luces permitidas || Maximum number of lights allowed
 constexpr int MAX_LIGHTS = 16;
@@ -56,6 +57,15 @@ public:
     // Activar o desactivar visualizacion de luces || Enable or disable light visualization
     void SetDebugLights(bool enabled) { debugLights = enabled; }
 
+    // Ajustar la niebla de la escena || Adjust scene fog
+    void SetFogSettings(const FogSettings& settings) { fogSettings = settings; }
+
+    // Obtener configuracion editable de la niebla || Get editable fog settings
+    FogSettings& GetFogSettings() { return fogSettings; }
+
+    // Obtener configuracion de solo lectura de la niebla || Get read-only fog settings
+    const FogSettings& GetFogSettings() const { return fogSettings; }
+
     // Renderizar todos los elementos de la escena || Render all elements of the scene
     void Draw(Shader& shader, Shader& emissiveShader, Camera& camera, float windowWidth, float windowHeight);
 
@@ -85,6 +95,7 @@ private:
     std::vector<Light> lights;
 
     ShadingModel shadingModel;
+    FogSettings fogSettings;
 
     std::shared_ptr<Model> lightDebugModel;
     bool debugLights = true;
