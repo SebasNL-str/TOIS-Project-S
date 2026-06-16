@@ -7,7 +7,7 @@
 struct MenuIntroAnimationSettings
 {
     bool enabled = true;
-    float durationSeconds = 1.15f;
+    float durationSeconds = 2.15f;
     float startCenterXPercent = 0.50f;
     float endCenterXPercent = 0.29f;
     float centerYPercent = 0.50f;
