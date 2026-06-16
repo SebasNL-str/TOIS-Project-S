@@ -119,6 +119,10 @@ void SetMenuOpen(GLFWwindow* window, MenuRenderer& menu, SoundManager& sound, bo
     {
         // Activar cursor y detener audio al abrir el menu || Enable cursor and stop audio when opening menu
         ShowMainMenu(menu);
+        if (!gameStarted && !menu.HasIntroAnimationPlayed())
+        {
+            menu.StartIntroAnimation();
+        }
         glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
         sound.StopAmbient();
     }
