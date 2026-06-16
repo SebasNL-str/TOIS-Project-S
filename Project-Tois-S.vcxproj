@@ -19,6 +19,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="FogSettings.h" />
     <ClInclude Include="Camera.h" />
     <ClInclude Include="Hitbox.h" />
     <ClInclude Include="InputHandler.h" />
@@ -41,6 +42,7 @@
     <ClInclude Include="WindowManager.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="FogSettings.cpp" />
     <ClCompile Include="Hitbox.cpp" />
     <ClCompile Include="InputHandler.cpp" />
     <ClCompile Include="LoadingHelper.cpp" />
