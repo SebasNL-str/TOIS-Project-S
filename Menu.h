@@ -49,7 +49,7 @@ struct MenuSettings
     GLfloat subtitleScale = 2.0f;
     GLfloat itemScale = 2.5f;
     GLfloat footerScale = 1.5f;
-    bool visible = true;
+    bool visible = false;
     bool useBackgroundImage = true;
     std::string backgroundImagePath = "Resources/MenuBackground/menu.jpg";
 };
@@ -279,8 +279,18 @@ public:
         // Dibujar el fondo || Draw background
         DrawBackground();
 
-        // Calcular ancho del panel || Calculate panel width
-        GLfloat panelWidth = std::min(settings.panelWidth, width - 40.0f);
+        // Calcular ancho del panel segun el texto visible || Calculate panel width based on visible text
+        GLfloat horizontalPadding = 96.0f;
+        GLfloat desiredPanelWidth = settings.panelWidth;
+        desiredPanelWidth = std::max(desiredPanelWidth, MeasureText(settings.title, settings.titleScale) + horizontalPadding);
+        desiredPanelWidth = std::max(desiredPanelWidth, MeasureText(settings.subtitle, settings.subtitleScale) + horizontalPadding);
+        desiredPanelWidth = std::max(desiredPanelWidth, MeasureText(settings.footer, settings.footerScale) + horizontalPadding);
+        for (const std::string& item : settings.items)
+        {
+            desiredPanelWidth = std::max(desiredPanelWidth, MeasureText(item, settings.itemScale) + horizontalPadding);
+        }
+
+        GLfloat panelWidth = std::min(desiredPanelWidth, width - 40.0f);
         if (panelWidth < 260.0f)
         {
             panelWidth = width - 20.0f;
@@ -298,8 +308,13 @@ public:
         DrawRect(panelX, panelY, panelWidth, panelHeight, settings.panelColor);
 
         // Dibujar titulo y subtitulo || Draw title and subtitle
-        DrawCenteredText(settings.title, panelX, panelY + 34.0f, panelWidth, settings.titleScale, settings.titleColor);
-        DrawCenteredText(settings.subtitle, panelX, panelY + 82.0f, panelWidth, settings.subtitleScale, settings.textColor);
+        GLfloat textAreaWidth = panelWidth - 56.0f;
+        GLfloat titleScale = GetFittedScale(settings.title, settings.titleScale, textAreaWidth);
+        GLfloat subtitleScale = GetFittedScale(settings.subtitle, settings.subtitleScale, textAreaWidth);
+        GLfloat footerScale = GetFittedScale(settings.footer, settings.footerScale, textAreaWidth);
+
+        DrawCenteredText(settings.title, panelX, panelY + 34.0f, panelWidth, titleScale, settings.titleColor);
+        DrawCenteredText(settings.subtitle, panelX, panelY + 82.0f, panelWidth, subtitleScale, settings.textColor);
 
         // Configurar posiciones de la lista || Configure list positions
         GLfloat itemY = panelY + 130.0f;
@@ -319,11 +334,12 @@ public:
             }
 
             // Dibujar texto de la opcion || Draw item text
-            DrawCenteredText(settings.items[i], panelX, rowY, panelWidth, settings.itemScale, selected ? settings.selectedTextColor : settings.textColor);
+            GLfloat fittedItemScale = GetFittedScale(settings.items[i], settings.itemScale, textAreaWidth);
+            DrawCenteredText(settings.items[i], panelX, rowY, panelWidth, fittedItemScale, selected ? settings.selectedTextColor : settings.textColor);
         }
 
         // Dibujar pie de pagina || Draw footer
-        DrawCenteredText(settings.footer, panelX, panelY + panelHeight - 40.0f, panelWidth, settings.footerScale, settings.footerColor);
+        DrawCenteredText(settings.footer, panelX, panelY + panelHeight - 40.0f, panelWidth, footerScale, settings.footerColor);
 
         // Restaurar estado grafico || Restore graphic state
         End();
@@ -424,6 +440,17 @@ public:
     GLfloat MeasureText(const std::string& text, GLfloat scale)
     {
         return static_cast<GLfloat>(text.size()) * 6.0f * scale;
+    }
+
+    GLfloat GetFittedScale(const std::string& text, GLfloat preferredScale, GLfloat maxWidth)
+    {
+        GLfloat measuredWidth = MeasureText(text, preferredScale);
+        if (measuredWidth <= maxWidth || measuredWidth <= 0.0f)
+        {
+            return preferredScale;
+        }
+
+        return std::max(1.25f, preferredScale * (maxWidth / measuredWidth));
     }
 
 private:

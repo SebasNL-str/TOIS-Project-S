@@ -11,10 +11,14 @@
 enum class MenuScreen
 {
     Main,
-    Settings
+    Settings,
+    Help,
+    Credits
 };
 
 // Declaracion de funciones de control del menu || Declaration of menu control functions
 void ShowMainMenu(MenuRenderer& menu);
 void ShowSettingsMenu(MenuRenderer& menu, const SoundManager& sound, bool hitboxDebug);
+void ShowHelpMenu(MenuRenderer& menu);
+void ShowCreditsMenu(MenuRenderer& menu);
 void SetMenuOpen(GLFWwindow* window, MenuRenderer& menu, SoundManager& sound, bool open);
