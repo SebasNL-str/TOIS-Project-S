@@ -78,6 +78,7 @@
   </ItemGroup>
   <ItemGroup>
     <Image Include="Resources\Icons\TOISS.ico" />
+    <Image Include="Resources\MenuBackground\menu.jpg" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>17.0</VCProjectVersion>

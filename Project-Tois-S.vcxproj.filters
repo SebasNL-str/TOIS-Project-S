@@ -179,5 +179,8 @@
     <Image Include="Resources\Icons\TOISS.ico">
       <Filter>Archivos de recursos</Filter>
     </Image>
+    <Image Include="Resources\MenuBackground\menu.jpg">
+      <Filter>Archivos de recursos</Filter>
+    </Image>
   </ItemGroup>
 </Project>

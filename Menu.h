@@ -526,27 +526,27 @@ private:
             return false;
         }
 
+        std::string resolvedBackgroundPath = ResolveAssetPath(settings.backgroundImagePath);
+
         // Verificar existencia fisica del archivo || Verify physical existence of the file
-        std::ifstream imageFile(settings.backgroundImagePath.c_str(), std::ios::binary);
-        if (!imageFile.good())
+        if (resolvedBackgroundPath.empty())
         {
             std::cout << "MENU::BACKGROUND_IMAGE_NOT_FOUND: " << settings.backgroundImagePath << std::endl;
-            std::cout << "MENU::EXPECTED_PATH - ruta relativa al directorio desde donde corre el .exe. Ejemplo: Resources/MenuBackground/menu.jpg" << std::endl;
+            std::cout << "MENU::EXPECTED_PATH - ruta relativa al directorio desde donde corre el .exe. Ejemplo: Resources/MenuBackground/menu.jpg, ../Resources/MenuBackground/menu.jpg o ../../Resources/MenuBackground/menu.jpg" << std::endl;
             std::cout << "MENU::SUPPORTED_FORMATS - png, jpg, jpeg, bmp, tga u otros formatos soportados por stb_image." << std::endl;
             return false;
         }
-        imageFile.close();
 
         int imageWidth = 0;
         int imageHeight = 0;
         int imageChannels = 0;
 
         // Cargar los pixeles del archivo con SOIL || Load file pixels using SOIL
-        unsigned char* data = SOIL_load_image(settings.backgroundImagePath.c_str(), &imageWidth, &imageHeight, &imageChannels, SOIL_LOAD_RGBA);
+        unsigned char* data = SOIL_load_image(resolvedBackgroundPath.c_str(), &imageWidth, &imageHeight, &imageChannels, SOIL_LOAD_RGBA);
 
         if (!data)
         {
-            std::cout << "MENU::BACKGROUND_IMAGE_LOAD_FAILED: " << settings.backgroundImagePath << std::endl;
+            std::cout << "MENU::BACKGROUND_IMAGE_LOAD_FAILED: " << resolvedBackgroundPath << std::endl;
             return false;
         }
 
@@ -565,9 +565,35 @@ private:
         free(data);
 
         backgroundTextureLoaded = true;
-        std::cout << "MENU::BACKGROUND_IMAGE_LOADED: " << settings.backgroundImagePath
+        std::cout << "MENU::BACKGROUND_IMAGE_LOADED: " << resolvedBackgroundPath
             << " (" << imageWidth << "x" << imageHeight << ", canales: " << imageChannels << ")" << std::endl;
         return true;
+    }
+
+    bool AssetExists(const std::string& path) const
+    {
+        std::ifstream file(path.c_str(), std::ios::binary);
+        return file.good();
+    }
+
+    std::string ResolveAssetPath(const std::string& path) const
+    {
+        std::vector<std::string> candidates = {
+            path,
+            "../" + path,
+            "../../" + path,
+            "../../../" + path
+        };
+
+        for (const std::string& candidate : candidates)
+        {
+            if (AssetExists(candidate))
+            {
+                return candidate;
+            }
+        }
+
+        return "";
     }
 
 
