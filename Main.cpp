@@ -102,17 +102,8 @@ int main()
     menuSettings.backgroundImagePath = "Resources/MenuBackground/menu.jpg";
     menu.Configure(menuSettings);
 
-    // Parametros editables para la entrada inicial del menu || Editable menu intro animation parameters
-    MenuIntroAnimationSettings& introSettings = menu.EditIntroAnimationSettings();
-    introSettings.enabled = true;
-    introSettings.durationSeconds = 2.15f;
-    introSettings.startCenterXPercent = 0.50f;
-    introSettings.endCenterXPercent = 0.29f;
-    introSettings.centerYPercent = 0.50f;
-
     ShowMainMenu(menu);
     SetMenuOpen(window, menu, sound, true);
-    menu.StartIntroAnimation();
 
     // Vincular unidades de textura iniciales en los shaders || Bind initial texture units within shaders
     shader.Use();
