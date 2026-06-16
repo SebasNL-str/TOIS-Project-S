@@ -48,7 +48,7 @@ void processMenuInput(GLFWwindow* window, MenuRenderer& menu, SoundManager& soun
     bool escPressed = glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS;
     if (escPressed && !escWasPressed)
     {
-        if (menuOpen && currentMenuScreen == MenuScreen::Settings)
+        if (menuOpen && currentMenuScreen != MenuScreen::Main)
         {
             ShowMainMenu(menu);
         }
@@ -90,6 +90,12 @@ void processMenuInput(GLFWwindow* window, MenuRenderer& menu, SoundManager& soun
                 menu.SetSelectedIndex(0);
                 break;
             case 2:
+                ShowHelpMenu(menu);
+                break;
+            case 3:
+                ShowCreditsMenu(menu);
+                break;
+            case 4:
                 glfwSetWindowShouldClose(window, true);
                 break;
             }
@@ -106,13 +112,15 @@ void processMenuInput(GLFWwindow* window, MenuRenderer& menu, SoundManager& soun
                 menu.SetSelectedIndex(selectedIndex);
                 break;
             case 1:
-                hitboxDebug = !hitboxDebug;
-                ShowSettingsMenu(menu, sound, hitboxDebug);
-                menu.SetSelectedIndex(selectedIndex);
-                break;
-            case 2:
                 ShowMainMenu(menu);
                 break;
+            }
+        }
+        else if (currentMenuScreen == MenuScreen::Help || currentMenuScreen == MenuScreen::Credits)
+        {
+            if (menu.GetSelectedIndex() == static_cast<int>(menu.GetSettings().items.size()) - 1)
+            {
+                ShowMainMenu(menu);
             }
         }
     }
