@@ -125,6 +125,7 @@ void SetMenuOpen(GLFWwindow* window, MenuRenderer& menu, SoundManager& sound, bo
     else
     {
         // Ocultar cursor y reanudar audio al cerrar el menu || Hide cursor and resume audio when closing menu
+        menu.SkipIntroAnimation();
         glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
         if (gameStarted)
         {

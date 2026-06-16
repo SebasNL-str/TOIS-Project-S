@@ -60,6 +60,9 @@
     <ClInclude Include="Menu.h">
       <Filter>Archivos de encabezado</Filter>
     </ClInclude>
+    <ClInclude Include="MenuAnimation.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
     <ClInclude Include="resource.h">
       <Filter>Archivos de encabezado</Filter>
     </ClInclude>
@@ -111,6 +114,9 @@
       <Filter>Archivos de origen</Filter>
     </ClCompile>
     <ClCompile Include="MenuController.cpp">
+      <Filter>Archivos de origen</Filter>
+    </ClCompile>
+    <ClCompile Include="MenuAnimation.cpp">
       <Filter>Archivos de origen</Filter>
     </ClCompile>
     <ClCompile Include="InputHandler.cpp">

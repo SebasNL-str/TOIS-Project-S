@@ -20,6 +20,7 @@
 #include <SOIL2/SOIL2.h>
 
 // Project include
+#include "MenuAnimation.h"
 #include "Shader.h"
 
 struct MenuSettings
@@ -154,6 +155,29 @@ public:
             ResetBackgroundTexture();
         }
         NormalizeSelection();
+    }
+
+    // Editar configuracion de la animacion inicial || Edit intro animation configuration
+    MenuIntroAnimationSettings& EditIntroAnimationSettings()
+    {
+        return introAnimation.EditSettings();
+    }
+
+    // Iniciar animacion inicial del menu || Start menu intro animation
+    void StartIntroAnimation()
+    {
+        introAnimation.Start();
+    }
+
+    // Saltar animacion inicial y usar posicion final || Skip intro animation and use final position
+    void SkipIntroAnimation()
+    {
+        introAnimation.Skip();
+    }
+
+    bool HasIntroAnimationPlayed() const
+    {
+        return introAnimation.HasPlayed();
     }
 
 
@@ -300,9 +324,10 @@ public:
         GLfloat panelHeight = 220.0f + static_cast<GLfloat>(settings.items.size()) * 46.0f;
         panelHeight = std::min(panelHeight, height - 40.0f);
 
-        // Centrar coordenadas del panel || Center panel coordinates
-        GLfloat panelX = (width - panelWidth) * 0.5f;
-        GLfloat panelY = (height - panelHeight) * 0.5f;
+        // Calcular coordenadas del panel, con animacion inicial si aplica || Calculate panel coordinates with intro animation when applicable
+        glm::vec2 panelPosition = introAnimation.GetPanelPosition(width, height, panelWidth, panelHeight);
+        GLfloat panelX = std::max(20.0f, std::min(panelPosition.x, width - panelWidth - 20.0f));
+        GLfloat panelY = std::max(20.0f, std::min(panelPosition.y, height - panelHeight - 20.0f));
 
         // Dibujar caja del panel || Draw panel box
         DrawRect(panelX, panelY, panelWidth, panelHeight, settings.panelColor);
@@ -465,6 +490,7 @@ private:
     GLfloat height;
     int selectedIndex;
     MenuSettings settings;
+    MenuIntroAnimation introAnimation;
     std::string loadedBackgroundPath;
     bool backgroundLoadAttempted;
     bool backgroundTextureLoaded;

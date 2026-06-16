@@ -28,6 +28,7 @@
     <ClInclude Include="LoadingHelper.h" />
     <ClInclude Include="LoadingScreen.h" />
     <ClInclude Include="Menu.h" />
+    <ClInclude Include="MenuAnimation.h" />
     <ClInclude Include="MenuController.h" />
     <ClInclude Include="Mesh.h" />
     <ClInclude Include="Model.h" />
@@ -48,6 +49,7 @@
     <ClCompile Include="LoadingHelper.cpp" />
     <ClCompile Include="LoadingScreen.cpp" />
     <ClCompile Include="Main.cpp" />
+    <ClCompile Include="MenuAnimation.cpp" />
     <ClCompile Include="MenuController.cpp" />
     <ClCompile Include="Mesh.cpp" />
     <ClCompile Include="Model.cpp" />
