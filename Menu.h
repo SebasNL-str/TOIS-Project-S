@@ -20,6 +20,7 @@
 #include <SOIL2/SOIL2.h>
 
 // Project include
+#include "MenuAnimation.h"
 #include "Shader.h"
 
 struct MenuSettings
@@ -49,7 +50,7 @@ struct MenuSettings
     GLfloat subtitleScale = 2.0f;
     GLfloat itemScale = 2.5f;
     GLfloat footerScale = 1.5f;
-    bool visible = true;
+    bool visible = false;
     bool useBackgroundImage = true;
     std::string backgroundImagePath = "Resources/MenuBackground/menu.jpg";
 };
@@ -154,6 +155,29 @@ public:
             ResetBackgroundTexture();
         }
         NormalizeSelection();
+    }
+
+    // Editar configuracion de la animacion inicial || Edit intro animation configuration
+    MenuIntroAnimationSettings& EditIntroAnimationSettings()
+    {
+        return introAnimation.EditSettings();
+    }
+
+    // Iniciar animacion inicial del menu || Start menu intro animation
+    void StartIntroAnimation()
+    {
+        introAnimation.Start();
+    }
+
+    // Saltar animacion inicial y usar posicion final || Skip intro animation and use final position
+    void SkipIntroAnimation()
+    {
+        introAnimation.Skip();
+    }
+
+    bool HasIntroAnimationPlayed() const
+    {
+        return introAnimation.HasPlayed();
     }
 
 
@@ -279,8 +303,18 @@ public:
         // Dibujar el fondo || Draw background
         DrawBackground();
 
-        // Calcular ancho del panel || Calculate panel width
-        GLfloat panelWidth = std::min(settings.panelWidth, width - 40.0f);
+        // Calcular ancho del panel segun el texto visible || Calculate panel width based on visible text
+        GLfloat horizontalPadding = 96.0f;
+        GLfloat desiredPanelWidth = settings.panelWidth;
+        desiredPanelWidth = std::max(desiredPanelWidth, MeasureText(settings.title, settings.titleScale) + horizontalPadding);
+        desiredPanelWidth = std::max(desiredPanelWidth, MeasureText(settings.subtitle, settings.subtitleScale) + horizontalPadding);
+        desiredPanelWidth = std::max(desiredPanelWidth, MeasureText(settings.footer, settings.footerScale) + horizontalPadding);
+        for (const std::string& item : settings.items)
+        {
+            desiredPanelWidth = std::max(desiredPanelWidth, MeasureText(item, settings.itemScale) + horizontalPadding);
+        }
+
+        GLfloat panelWidth = std::min(desiredPanelWidth, width - 40.0f);
         if (panelWidth < 260.0f)
         {
             panelWidth = width - 20.0f;
@@ -290,16 +324,22 @@ public:
         GLfloat panelHeight = 220.0f + static_cast<GLfloat>(settings.items.size()) * 46.0f;
         panelHeight = std::min(panelHeight, height - 40.0f);
 
-        // Centrar coordenadas del panel || Center panel coordinates
-        GLfloat panelX = (width - panelWidth) * 0.5f;
-        GLfloat panelY = (height - panelHeight) * 0.5f;
+        // Calcular coordenadas del panel, con animacion inicial si aplica || Calculate panel coordinates with intro animation when applicable
+        glm::vec2 panelPosition = introAnimation.GetPanelPosition(width, height, panelWidth, panelHeight);
+        GLfloat panelX = std::max(20.0f, std::min(panelPosition.x, width - panelWidth - 20.0f));
+        GLfloat panelY = std::max(20.0f, std::min(panelPosition.y, height - panelHeight - 20.0f));
 
         // Dibujar caja del panel || Draw panel box
         DrawRect(panelX, panelY, panelWidth, panelHeight, settings.panelColor);
 
         // Dibujar titulo y subtitulo || Draw title and subtitle
-        DrawCenteredText(settings.title, panelX, panelY + 34.0f, panelWidth, settings.titleScale, settings.titleColor);
-        DrawCenteredText(settings.subtitle, panelX, panelY + 82.0f, panelWidth, settings.subtitleScale, settings.textColor);
+        GLfloat textAreaWidth = panelWidth - 56.0f;
+        GLfloat titleScale = GetFittedScale(settings.title, settings.titleScale, textAreaWidth);
+        GLfloat subtitleScale = GetFittedScale(settings.subtitle, settings.subtitleScale, textAreaWidth);
+        GLfloat footerScale = GetFittedScale(settings.footer, settings.footerScale, textAreaWidth);
+
+        DrawCenteredText(settings.title, panelX, panelY + 34.0f, panelWidth, titleScale, settings.titleColor);
+        DrawCenteredText(settings.subtitle, panelX, panelY + 82.0f, panelWidth, subtitleScale, settings.textColor);
 
         // Configurar posiciones de la lista || Configure list positions
         GLfloat itemY = panelY + 130.0f;
@@ -319,11 +359,12 @@ public:
             }
 
             // Dibujar texto de la opcion || Draw item text
-            DrawCenteredText(settings.items[i], panelX, rowY, panelWidth, settings.itemScale, selected ? settings.selectedTextColor : settings.textColor);
+            GLfloat fittedItemScale = GetFittedScale(settings.items[i], settings.itemScale, textAreaWidth);
+            DrawCenteredText(settings.items[i], panelX, rowY, panelWidth, fittedItemScale, selected ? settings.selectedTextColor : settings.textColor);
         }
 
         // Dibujar pie de pagina || Draw footer
-        DrawCenteredText(settings.footer, panelX, panelY + panelHeight - 40.0f, panelWidth, settings.footerScale, settings.footerColor);
+        DrawCenteredText(settings.footer, panelX, panelY + panelHeight - 40.0f, panelWidth, footerScale, settings.footerColor);
 
         // Restaurar estado grafico || Restore graphic state
         End();
@@ -426,6 +467,17 @@ public:
         return static_cast<GLfloat>(text.size()) * 6.0f * scale;
     }
 
+    GLfloat GetFittedScale(const std::string& text, GLfloat preferredScale, GLfloat maxWidth)
+    {
+        GLfloat measuredWidth = MeasureText(text, preferredScale);
+        if (measuredWidth <= maxWidth || measuredWidth <= 0.0f)
+        {
+            return preferredScale;
+        }
+
+        return std::max(1.25f, preferredScale * (maxWidth / measuredWidth));
+    }
+
 private:
     // Variables miembros privadas || Private member variables
     Shader shader;
@@ -438,6 +490,7 @@ private:
     GLfloat height;
     int selectedIndex;
     MenuSettings settings;
+    MenuIntroAnimation introAnimation;
     std::string loadedBackgroundPath;
     bool backgroundLoadAttempted;
     bool backgroundTextureLoaded;
@@ -526,27 +579,27 @@ private:
             return false;
         }
 
+        std::string resolvedBackgroundPath = ResolveAssetPath(settings.backgroundImagePath);
+
         // Verificar existencia fisica del archivo || Verify physical existence of the file
-        std::ifstream imageFile(settings.backgroundImagePath.c_str(), std::ios::binary);
-        if (!imageFile.good())
+        if (resolvedBackgroundPath.empty())
         {
             std::cout << "MENU::BACKGROUND_IMAGE_NOT_FOUND: " << settings.backgroundImagePath << std::endl;
-            std::cout << "MENU::EXPECTED_PATH - ruta relativa al directorio desde donde corre el .exe. Ejemplo: Resources/MenuBackground/menu.jpg" << std::endl;
+            std::cout << "MENU::EXPECTED_PATH - ruta relativa al directorio desde donde corre el .exe. Ejemplo: Resources/MenuBackground/menu.jpg, ../Resources/MenuBackground/menu.jpg o ../../Resources/MenuBackground/menu.jpg" << std::endl;
             std::cout << "MENU::SUPPORTED_FORMATS - png, jpg, jpeg, bmp, tga u otros formatos soportados por stb_image." << std::endl;
             return false;
         }
-        imageFile.close();
 
         int imageWidth = 0;
         int imageHeight = 0;
         int imageChannels = 0;
 
         // Cargar los pixeles del archivo con SOIL || Load file pixels using SOIL
-        unsigned char* data = SOIL_load_image(settings.backgroundImagePath.c_str(), &imageWidth, &imageHeight, &imageChannels, SOIL_LOAD_RGBA);
+        unsigned char* data = SOIL_load_image(resolvedBackgroundPath.c_str(), &imageWidth, &imageHeight, &imageChannels, SOIL_LOAD_RGBA);
 
         if (!data)
         {
-            std::cout << "MENU::BACKGROUND_IMAGE_LOAD_FAILED: " << settings.backgroundImagePath << std::endl;
+            std::cout << "MENU::BACKGROUND_IMAGE_LOAD_FAILED: " << resolvedBackgroundPath << std::endl;
             return false;
         }
 
@@ -565,9 +618,35 @@ private:
         free(data);
 
         backgroundTextureLoaded = true;
-        std::cout << "MENU::BACKGROUND_IMAGE_LOADED: " << settings.backgroundImagePath
+        std::cout << "MENU::BACKGROUND_IMAGE_LOADED: " << resolvedBackgroundPath
             << " (" << imageWidth << "x" << imageHeight << ", canales: " << imageChannels << ")" << std::endl;
         return true;
+    }
+
+    bool AssetExists(const std::string& path) const
+    {
+        std::ifstream file(path.c_str(), std::ios::binary);
+        return file.good();
+    }
+
+    std::string ResolveAssetPath(const std::string& path) const
+    {
+        std::vector<std::string> candidates = {
+            path,
+            "../" + path,
+            "../../" + path,
+            "../../../" + path
+        };
+
+        for (const std::string& candidate : candidates)
+        {
+            if (AssetExists(candidate))
+            {
+                return candidate;
+            }
+        }
+
+        return "";
     }
 
 

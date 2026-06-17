@@ -19,6 +19,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="FogSettings.h" />
     <ClInclude Include="Camera.h" />
     <ClInclude Include="Hitbox.h" />
     <ClInclude Include="InputHandler.h" />
@@ -27,6 +28,7 @@
     <ClInclude Include="LoadingHelper.h" />
     <ClInclude Include="LoadingScreen.h" />
     <ClInclude Include="Menu.h" />
+    <ClInclude Include="MenuAnimation.h" />
     <ClInclude Include="MenuController.h" />
     <ClInclude Include="Mesh.h" />
     <ClInclude Include="Model.h" />
@@ -41,11 +43,13 @@
     <ClInclude Include="WindowManager.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="FogSettings.cpp" />
     <ClCompile Include="Hitbox.cpp" />
     <ClCompile Include="InputHandler.cpp" />
     <ClCompile Include="LoadingHelper.cpp" />
     <ClCompile Include="LoadingScreen.cpp" />
     <ClCompile Include="Main.cpp" />
+    <ClCompile Include="MenuAnimation.cpp" />
     <ClCompile Include="MenuController.cpp" />
     <ClCompile Include="Mesh.cpp" />
     <ClCompile Include="Model.cpp" />
@@ -76,6 +80,7 @@
   </ItemGroup>
   <ItemGroup>
     <Image Include="Resources\Icons\TOISS.ico" />
+    <Image Include="Resources\MenuBackground\menu.jpg" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>17.0</VCProjectVersion>

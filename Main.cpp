@@ -98,8 +98,10 @@ int main()
     MenuRenderer menu;
     MenuSettings menuSettings;
     menuSettings.visible = true;
-    menuSettings.useBackgroundImage = false;
+    menuSettings.useBackgroundImage = true;
+    menuSettings.backgroundImagePath = "Resources/MenuBackground/menu.jpg";
     menu.Configure(menuSettings);
+
     ShowMainMenu(menu);
     SetMenuOpen(window, menu, sound, true);
 
@@ -294,7 +296,7 @@ int main()
         shader.SetFloat("spotOuterCutOff", glm::cos(glm::radians(17.5f)));
 
         // Dibujar todos los elementos tridimensionales e iluminacion || Draw all three dimensional elements and lighting
-        scene.Draw(shader, emissiveShader, camera, widthR, heightR);
+        scene.Draw(shader, emissiveShader, camera, static_cast<float>(widthR), static_cast<float>(heightR));
 
         // Renderizar lineas de depuracion de las mallas de colision || Render debug lines of the collision meshes
         if (hitboxDebug)

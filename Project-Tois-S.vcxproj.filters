@@ -18,6 +18,9 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="FogSettings.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
     <ClInclude Include="Camera.h">
       <Filter>Archivos de encabezado</Filter>
     </ClInclude>
@@ -57,6 +60,9 @@
     <ClInclude Include="Menu.h">
       <Filter>Archivos de encabezado</Filter>
     </ClInclude>
+    <ClInclude Include="MenuAnimation.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
     <ClInclude Include="resource.h">
       <Filter>Archivos de encabezado</Filter>
     </ClInclude>
@@ -80,6 +86,9 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="FogSettings.cpp">
+      <Filter>Archivos de origen</Filter>
+    </ClCompile>
     <ClCompile Include="Main.cpp">
       <Filter>Archivos de origen</Filter>
     </ClCompile>
@@ -105,6 +114,9 @@
       <Filter>Archivos de origen</Filter>
     </ClCompile>
     <ClCompile Include="MenuController.cpp">
+      <Filter>Archivos de origen</Filter>
+    </ClCompile>
+    <ClCompile Include="MenuAnimation.cpp">
       <Filter>Archivos de origen</Filter>
     </ClCompile>
     <ClCompile Include="InputHandler.cpp">
@@ -171,6 +183,9 @@
   </ItemGroup>
   <ItemGroup>
     <Image Include="Resources\Icons\TOISS.ico">
+      <Filter>Archivos de recursos</Filter>
+    </Image>
+    <Image Include="Resources\MenuBackground\menu.jpg">
       <Filter>Archivos de recursos</Filter>
     </Image>
   </ItemGroup>

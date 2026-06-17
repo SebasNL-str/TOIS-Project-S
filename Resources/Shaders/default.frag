@@ -34,6 +34,60 @@ uniform Light lights[MAX_LIGHTS];
 uniform float spotCutOff;      
 uniform float spotOuterCutOff; 
 
+// Reusable fog layer. Tune the matching values in FogSettings.h.
+// Capa de niebla reutilizable. Modifica los valores equivalentes en FogSettings.h.
+struct FogLayer
+{
+    vec3 color;
+    float nearDistance;
+    float farDistance;
+    float density;
+    float baseHeight;
+    float heightFalloff;
+    float maxOpacity;
+};
+
+// Two-layer fog: local model fog plus far boundary fog.
+// Niebla de dos capas: niebla local del modelo mas niebla lejana de limite.
+struct Fog
+{
+    bool enabled;
+    FogLayer localLayer;
+    FogLayer boundaryLayer;
+};
+
+uniform Fog fog;
+
+// Calculate one fog layer using distance and optional height falloff.
+// Calcula una capa de niebla usando distancia y desvanecido vertical opcional.
+float CalculateFogAmount(FogLayer layer)
+{
+    float cameraDistance = length(viewPos - FragPos);
+    float rangeSize = max(layer.farDistance - layer.nearDistance, 0.001);
+    float distanceRange = clamp((cameraDistance - layer.nearDistance) / rangeSize, 0.0, 1.0);
+    float distanceFog = smoothstep(0.0, 1.0, distanceRange);
+    float densityFog = 1.0 - exp(-layer.density * cameraDistance);
+
+    float verticalOffset = max(FragPos.y - layer.baseHeight, 0.0);
+    float heightFog = exp(-verticalOffset * layer.heightFalloff);
+
+    return clamp(distanceFog * densityFog * heightFog, 0.0, layer.maxOpacity);
+}
+
+// Mix scene lighting with local fog first, then far enclosing fog.
+// Mezcla la iluminacion con niebla local primero y luego con niebla lejana de encierro.
+vec3 ApplyFog(vec3 color)
+{
+    if (!fog.enabled)
+        return color;
+
+    float localFogAmount = CalculateFogAmount(fog.localLayer);
+    vec3 foggedColor = mix(color, fog.localLayer.color, localFogAmount);
+
+    float boundaryFogAmount = CalculateFogAmount(fog.boundaryLayer);
+    return mix(foggedColor, fog.boundaryLayer.color, boundaryFogAmount);
+}
+
 void main()
 {
     // Muestrear el color de la textura || Sample the texture color
@@ -111,6 +165,7 @@ void main()
 
     // Aplicar mapeo de tonos simple || Apply simple tonemapping
     result = result / (result + vec3(1.0));
+    result = ApplyFog(result);
 
     // Asignar color final con el canal alpha original || Assign final color with original alpha channel
     FragColor = vec4(result, texColor.a);
