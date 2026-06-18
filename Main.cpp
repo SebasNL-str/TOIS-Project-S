@@ -192,6 +192,8 @@ int main()
 
     // Refrescar pantalla de carga al valor maximo oficial || Refresh loading screen to official maximum value
     UpdateLoadingScreen(window, barVAO, barVBO, loadingShader, 5, 5);
+    PlayLoadingFadeOut(window, barVAO, barVBO, loadingShader);
+    menu.StartIntroAnimation();
 
 
 

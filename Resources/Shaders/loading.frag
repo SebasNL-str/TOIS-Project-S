@@ -10,6 +10,7 @@ uniform vec3 barColor;
 uniform float globalTime; 
 uniform bool isSpinner;
 uniform vec3 screenSize; 
+uniform float loadingOpacity;
 
 // Funcion matematica para dibujar trazos rectos || Mathematical function to draw straight lines
 float DrawSegment(vec2 p, vec2 a, vec2 b, float thickness) {
@@ -51,7 +52,7 @@ void main() {
 
             // Pintar texto o descartar el fragmento || Paint text or discard the fragment
             if (sLetter > 0.0) {
-                FragColor = vec4(barColor, 1.0); 
+                FragColor = vec4(barColor, loadingOpacity); 
             } else {
                 discard; 
             }
@@ -78,11 +79,11 @@ void main() {
                 finalColor = vec3(0.08, 0.08, 0.08); 
             }
             
-            FragColor = vec4(finalColor, 1.0);
+            FragColor = vec4(finalColor, loadingOpacity);
         }
     } else {
         // Color solido para la barra de progreso estandar || Solid color for standard progress bar
-        FragColor = vec4(barColor, 1.0);
+        FragColor = vec4(barColor, loadingOpacity);
     }
 }
 
