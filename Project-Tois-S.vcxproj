@@ -19,6 +19,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Bloom.h" />
     <ClInclude Include="FogSettings.h" />
     <ClInclude Include="Camera.h" />
     <ClInclude Include="Hitbox.h" />
@@ -43,6 +44,7 @@
     <ClInclude Include="WindowManager.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Bloom.cpp" />
     <ClCompile Include="FogSettings.cpp" />
     <ClCompile Include="Hitbox.cpp" />
     <ClCompile Include="InputHandler.cpp" />
@@ -60,6 +62,9 @@
     <ClCompile Include="WindowManager.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="Resources\Shaders\bloomFinal.frag" />
+    <None Include="Resources\Shaders\blur.frag" />
+    <None Include="Resources\Shaders\brightExtract.frag" />
     <None Include="Resources\Shaders\default.frag" />
     <None Include="Resources\Shaders\default.vert" />
     <None Include="Resources\Shaders\emissive.frag" />
@@ -70,6 +75,7 @@
     <None Include="Resources\Shaders\loading.vert" />
     <None Include="Resources\Shaders\menu.frag" />
     <None Include="Resources\Shaders\menu.vs" />
+    <None Include="Resources\Shaders\quad.vert" />
     <None Include="Resources\Shaders\skybox.frag" />
     <None Include="Resources\Shaders\skybox.vert" />
     <None Include="Resources\Shaders\skybox_sphere.frag" />

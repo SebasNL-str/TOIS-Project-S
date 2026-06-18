@@ -84,6 +84,9 @@
     <ClInclude Include="LoadingHelper.h">
       <Filter>Archivos de encabezado</Filter>
     </ClInclude>
+    <ClInclude Include="Bloom.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="FogSettings.cpp">
@@ -131,6 +134,9 @@
     <ClCompile Include="LoadingHelper.cpp">
       <Filter>Archivos de origen</Filter>
     </ClCompile>
+    <ClCompile Include="Bloom.cpp">
+      <Filter>Archivos de origen</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\Shaders\emissive.frag">
@@ -173,6 +179,18 @@
       <Filter>Archivos de recursos\Shaders</Filter>
     </None>
     <None Include="Resources\Shaders\loading.vert">
+      <Filter>Archivos de recursos\Shaders</Filter>
+    </None>
+    <None Include="Resources\Shaders\quad.vert">
+      <Filter>Archivos de recursos\Shaders</Filter>
+    </None>
+    <None Include="Resources\Shaders\bloomFinal.frag">
+      <Filter>Archivos de recursos\Shaders</Filter>
+    </None>
+    <None Include="Resources\Shaders\blur.frag">
+      <Filter>Archivos de recursos\Shaders</Filter>
+    </None>
+    <None Include="Resources\Shaders\brightExtract.frag">
       <Filter>Archivos de recursos\Shaders</Filter>
     </None>
   </ItemGroup>

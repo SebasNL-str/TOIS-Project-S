@@ -69,7 +69,7 @@ namespace
 }
 
 // Procesar los comandos de entrada durante el estado de juego || Process input commands during gameplay state
-void processGameplayInput(GLFWwindow* window, bool& flashlightEnabled)
+void processGameplayInput(GLFWwindow* window, bool& flashlightEnabled, bool& bloomEnabled)
 {
     static bool fWasPressed = false;
 
@@ -90,6 +90,19 @@ void processGameplayInput(GLFWwindow* window, bool& flashlightEnabled)
         flashlightEnabled = !flashlightEnabled;
     }
     fWasPressed = fPressed;
+
+    // Dentro de tu función de procesamiento de teclado:
+    static bool bKeyPressed = false;
+    if (glfwGetKey(window, GLFW_KEY_B) == GLFW_PRESS) {
+        if (!bKeyPressed) {
+            bloomEnabled = !bloomEnabled;
+            std::cout << "Bloom: " << (bloomEnabled ? "ACTIVADO" : "DESACTIVADO") << std::endl;
+            bKeyPressed = true;
+        }
+    }
+    else if (glfwGetKey(window, GLFW_KEY_B) == GLFW_RELEASE) {
+        bKeyPressed = false;
+    }
 }
 
 // Procesar la navegacion del usuario dentro de la interfaz || Process user navigation inside the interface

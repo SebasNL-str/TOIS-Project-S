@@ -18,6 +18,7 @@
 #include "SoundManager.h"
 #include "LoadingScreen.h"
 #include "LoadingHelper.h"
+#include "Bloom.h"
 
 // Dimensiones predeterminadas de la pantalla || Default screen dimensions
 const int SCREEN_WIDTH = 1000;
@@ -50,6 +51,9 @@ TourFadeSettings tourFadeSettings;
 bool tourFadeActive = false;
 float tourFadeOpacity = 0.0f;
 
+Bloom bloom;
+bool bloomEnabled = true;
+
 int main()
 {
     int widthR, heightR;
@@ -68,6 +72,8 @@ int main()
     Shader loadingShader("Resources/Shaders/loading.vert", "Resources/Shaders/loading.frag");
     GLuint barVAO, barVBO;
     InitProgressBar(barVAO, barVBO);
+    bloom.Init(widthR, heightR);
+
 
     // Cargar asincronamente los recursos mediante la maquina de estados || Asynchronously load resources using the state machine
     GAssets loadedData = ExecuteInteractiveLoading(window, loadingShader, barVAO, barVBO);
@@ -135,14 +141,24 @@ int main()
 
     // Agregar fuentes de luz puntuales y focales a la escena || Add point and spot light sources to the scene
     // scene.AddLight({ LightType::Point, {5.0f, 25.0f, 50.0f}, {0.0f, -1.0f, 0.0f}, {1.0f, 1.0f, 1.0f}, 10.0f, true });
-    scene.AddLight({ LightType::Point, {0.0f, 2.5f, 35.0f}, {0.0f, -1.0f, 0.0f}, {0.55f, 0.45f, 0.15f}, 2.5f, false });
-    scene.AddLight({ LightType::Point, {10.0f, 2.5f, 40.0f}, {0.0f, -1.0f, 0.0f}, {0.55f, 0.45f, 0.15f}, 2.5f, false });
-    scene.AddLight({ LightType::Point, {10.0f, 2.5f, 50.0f}, {0.0f, -1.0f, 0.0f}, {0.55f, 0.45f, 0.15f}, 2.5f, false });
-    scene.AddLight({ LightType::Point, {-3.5f, 2.5f, 59.5f}, {0.0f, -1.0f, 0.0f}, {0.55f, 0.45f, 0.15f}, 2.5f, false });
-    scene.AddLight({ LightType::Point, {-1.5f, 2.5f, 62.5f}, {0.0f, -1.0f, 0.0f}, {0.55f, 0.45f, 0.15f}, 1.0f, false });
-    scene.AddLight({ LightType::Point, {10.5f, 2.5f, 62.5f}, {0.0f, -1.0f, 0.0f}, {0.55f, 0.45f, 0.15f}, 1.0f, false });
-    scene.AddLight({ LightType::Point, {10.5f, 2.5f, 25.0f}, {0.0f, -1.0f, 0.0f}, {0.55f, 0.45f, 0.15f}, 1.0f, false });
-    scene.AddLight({ LightType::Point, {-1.5f, 2.5f, 25.0f}, {0.0f, -1.0f, 0.0f}, {0.55f, 0.45f, 0.15f}, 1.0f, false });
+// Multiplicadores de intensidad HDR para forzar el Bloom
+    float mainLightIntensity = 10.0f;
+    float secondaryLightIntensity = 5.0f;
+
+    glm::vec3 baseLightColor(0.55f, 0.45f, 0.15f);
+    glm::vec3 hdrMainColor = baseLightColor * mainLightIntensity;         // Resultado: {5.5f, 4.5f, 1.5f}
+    glm::vec3 hdrSecondaryColor = baseLightColor * secondaryLightIntensity; // Resultado: {2.75f, 2.25f, 0.75f}
+
+    // Agregar fuentes de luz puntuales con intensidades HDR corregidas
+    scene.AddLight({ LightType::Point, {0.0f, 2.5f, 35.0f}, {0.0f, -1.0f, 0.0f}, hdrMainColor, 2.5f, true });
+    scene.AddLight({ LightType::Point, {10.0f, 2.5f, 40.0f}, {0.0f, -1.0f, 0.0f}, hdrMainColor, 2.5f, true });
+    scene.AddLight({ LightType::Point, {10.0f, 2.5f, 50.0f}, {0.0f, -1.0f, 0.0f}, hdrMainColor, 2.5f, true });
+    scene.AddLight({ LightType::Point, {-3.5f, 2.5f, 59.5f}, {0.0f, -1.0f, 0.0f}, hdrMainColor, 2.5f, true });
+    
+    scene.AddLight({ LightType::Point, {-1.5f, 2.5f, 62.5f}, {0.0f, -1.0f, 0.0f}, hdrSecondaryColor, 1.0f, false });
+    scene.AddLight({ LightType::Point, {10.5f, 2.5f, 62.5f}, {0.0f, -1.0f, 0.0f}, hdrSecondaryColor, 1.0f, false });
+    scene.AddLight({ LightType::Point, {10.5f, 2.5f, 25.0f}, {0.0f, -1.0f, 0.0f}, hdrSecondaryColor, 1.0f, false });
+    scene.AddLight({ LightType::Point, {-1.5f, 2.5f, 25.0f}, {0.0f, -1.0f, 0.0f}, hdrSecondaryColor, 1.0f, false });
 
     // Directional light
     scene.AddLight({ LightType::Directional, {0.0f, 0.0f, 0.0f}, {-0.2f, -1.0f, -0.3f}, {0.45f, 0.55f, 0.70f}, 1.2f, false });
@@ -207,60 +223,59 @@ int main()
 
 
 
+    // =========================================================================
+        // INICIO DEL BUCLE DE RENDERIZADO PRINCIPAL CORREGIDO
+        // =========================================================================
     while (!glfwWindowShouldClose(window))
     {
-        // Actualizar informacion de rendimiento en la ventana || Update performance information on the window
+        // Actualizar información de rendimiento en la ventana (FPS)
         updateFPS(window);
+
+        // Inicializar variables para dimensiones del buffer de la ventana
         int framebufferWidth = SCREEN_WIDTH;
         int framebufferHeight = SCREEN_HEIGHT;
 
-        // Obtener dimensiones reales del buffer de la ventana || Get actual window buffer dimensions
+        // Obtener dimensiones reales del buffer de la ventana (Crucial para pantallas Retina/High-DPI)
         glfwGetFramebufferSize(window, &framebufferWidth, &framebufferHeight);
-        if (framebufferWidth <= 0)
-            framebufferWidth = SCREEN_WIDTH;
-        if (framebufferHeight <= 0)
-            framebufferHeight = SCREEN_HEIGHT;
+        if (framebufferWidth <= 0) framebufferWidth = SCREEN_WIDTH;
+        if (framebufferHeight <= 0) framebufferHeight = SCREEN_HEIGHT;
 
-        // Establecer las dimensiones del area de dibujo de OpenGL || Set OpenGL drawing area dimensions
-        glViewport(0, 0, widthR, heightR);
+        // Establecer de forma dinámica las dimensiones del área de dibujo de OpenGL
+        glViewport(0, 0, framebufferWidth, framebufferHeight);
 
-        // Calcular el tiempo transcurrido entre fotogramas || Calculate time elapsed between frames
+        // Calcular el tiempo transcurrido entre fotogramas (Delta Time)
         float currentFrame = static_cast<float>(glfwGetTime());
         deltaTime = currentFrame - lastFrame;
         lastFrame = currentFrame;
 
-        if (tourFadeActive)
-        {
-            if (tourFadeSettings.durationSeconds <= 0.0f)
-            {
+        // Lógica de transición / Fade del tour
+        if (tourFadeActive) {
+            if (tourFadeSettings.durationSeconds <= 0.0f) {
                 tourFadeOpacity = 0.0f;
                 tourFadeActive = false;
             }
-            else
-            {
+            else {
                 tourFadeOpacity -= deltaTime / tourFadeSettings.durationSeconds;
-                if (tourFadeOpacity <= 0.0f)
-                {
+                if (tourFadeOpacity <= 0.0f) {
                     tourFadeOpacity = 0.0f;
                     tourFadeActive = false;
                 }
             }
         }
 
-        // Capturar eventos del sistema y procesar entradas del menu || Capture system events and process menu inputs
+        // Capturar eventos del sistema (Teclado, Mouse, Ventana)
         glfwPollEvents();
+
+        // Procesar entradas del menú principal o de pausa
         processMenuInput(window, menu, sound, hitboxDebug);
 
-        // Procesar logica del juego si el menu esta cerrado || Process game logic if the menu is closed
-        if (!menuOpen && gameStarted)
-        {
+        // Procesar lógica y controles del gameplay únicamente si el menú está cerrado y el juego inició
+        if (!menuOpen && gameStarted) {
             glm::vec3 oldPos = camera.GetPosition();
-
-            processGameplayInput(window, flashlightEnabled);
-
+            processGameplayInput(window, flashlightEnabled, bloomEnabled);
             glm::vec3 newPos = camera.GetPosition();
 
-            // Actualizar coordenadas y estado de la linterna de la camara || Update camera flashlight coordinates and state
+            // Actualizar coordenadas, dirección y estado de la linterna acoplada a la cámara
             scene.SetLight(flashlightLightIndex, {
                 LightType::Spot,
                 newPos + camera.GetFront() * 0.25f,
@@ -269,101 +284,139 @@ int main()
                 flashlightEnabled ? 18.0f : 0.0f
                 });
 
-            // Evaluar sistema nativo de colisiones por malla || Evaluate native mesh collision system
-            if (hitboxC)
-            {
+            // Evaluar colisiones por malla del sistema nativo
+            if (hitboxC) {
                 CameraCollider camCollider{ newPos, 0.8f };
                 bool blocked = false;
-
-                // Comprobar intersecciones con los objetos de la escena || Check intersections with scene objects
-                for (auto& obj : scene.GetObjects())
-                {
+                for (auto& obj : scene.GetObjects()) {
                     if (CheckCollisionSphereMesh(camCollider.position,
                         camCollider.radius,
                         obj.model->collider,
-                        obj.GetModelMatrix()))
-                    {
+                        obj.GetModelMatrix())) {
                         blocked = true;
                         break;
                     }
                 }
-
-                // Revertir posicion en caso de colision detectada || Revert position in case of collision detected
-                if (blocked)
-                {
-                    camera.ForcePosition(oldPos);
-                }
+                if (blocked) camera.ForcePosition(oldPos); // Revertir movimiento si colisiona
             }
         }
 
-        // Limpiar buffers de color y profundidad de la pantalla || Clear screen color and depth buffers
+        // =========================================================================
+        // PASO 1: Redirigir el Renderizado de la Escena al HDR FBO de Bloom
+        // =========================================================================
+        glBindFramebuffer(GL_FRAMEBUFFER, bloom.hdrFBO);
+
+        // Forzar encendido del Test de Profundidad antes de limpiar el buffer
+        glEnable(GL_DEPTH_TEST);
+        glDepthFunc(GL_LESS);
+        glDisable(GL_BLEND); // Empezamos sin transparencias parasitarias del frame anterior
+
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        // Renderizar unicamente el menu inicial antes de iniciar el tour || Render only the initial menu before starting the tour
-        if (!gameStarted)
-        {
+        // Decidir qué renderizar estructuralmente dentro del FBO sin romper el ciclo
+        if (!gameStarted) {
+            // --- ESTADOS PARA INTERFAZ 2D DEL MENÚ INICIAL ---
+            glEnable(GL_BLEND);
+            glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+            glDisable(GL_DEPTH_TEST); // Evita que la UI se oculte detrás del z-buffer inexistente
+
             menu.Render(framebufferWidth, framebufferHeight);
-            glfwSwapBuffers(window);
-            continue;
+
+            // Limpieza inmediata de estados tras renderizar el menú
+            glDisable(GL_BLEND);
+            glEnable(GL_DEPTH_TEST);
+            glBindVertexArray(0);
         }
+        else {
+            // --- ESTADOS PARA MUNDO 3D ACTIVO ---
+            glEnable(GL_DEPTH_TEST);
+            glDisable(GL_BLEND);
 
-        // Dibujar el cielo de fondo segun la proyeccion activa || Draw background skybox based on active projection
-        if (activeType == SkyboxType::Cube)
-        {
-            skyboxShader.Use();
-            skybox.Draw(skyboxShader, camera, static_cast<float>(framebufferWidth), static_cast<float>(framebufferHeight));
-        }
-        else if (activeType == SkyboxType::Sphere)
-        {
-            skyboxSphereShader.Use();
-            sphereSkybox.Draw(skyboxSphereShader, camera, static_cast<float>(framebufferWidth), static_cast<float>(framebufferHeight));
-        }
+            // 1. Dibujar el cielo de fondo (Skybox) según el tipo seleccionado
+            if (activeType == SkyboxType::Cube) {
+                skyboxShader.Use();
+                skybox.Draw(skyboxShader, camera, (float)framebufferWidth, (float)framebufferHeight);
+            }
+            else if (activeType == SkyboxType::Sphere) {
+                skyboxSphereShader.Use();
+                sphereSkybox.Draw(skyboxSphereShader, camera, (float)framebufferWidth, (float)framebufferHeight);
+            }
 
-        // Activar el shader principal y enviar limites focales || Activate main shader and send spot limits
-        shader.Use();
+            // 2. Activar el shader de los objetos e iluminar los límites de la linterna (Spotlight)
+            shader.Use();
+            shader.SetFloat("spotCutOff", glm::cos(glm::radians(12.5f)));
+            shader.SetFloat("spotOuterCutOff", glm::cos(glm::radians(17.5f)));
 
-        shader.SetFloat("spotCutOff", glm::cos(glm::radians(12.5f)));
-        shader.SetFloat("spotOuterCutOff", glm::cos(glm::radians(17.5f)));
+            // 3. Dibujar todos los elementos opacos y emisivos del escenario
+            scene.Draw(shader, emissiveShader, camera, (float)framebufferWidth, (float)framebufferHeight);
+            glBindVertexArray(0);
 
-        // Dibujar todos los elementos tridimensionales e iluminacion || Draw all three dimensional elements and lighting
-        scene.Draw(shader, emissiveShader, camera, static_cast<float>(widthR), static_cast<float>(heightR));
+            // 4. Renderizar líneas de depuración de colisiones (Hitboxes) en caso de estar activo
+            if (hitboxDebug) {
+                hitboxShader.Use();
+                glm::mat4 projection = glm::perspective(glm::radians(camera.GetZoom()),
+                    (float)framebufferWidth / (float)framebufferHeight, 0.1f, 100.0f);
+                for (auto& obj : scene.GetObjects()) {
+                    DrawMeshCollider(obj.model->collider,
+                        hitboxShader,
+                        obj.GetModelMatrix(),
+                        camera.GetViewMatrix(),
+                        projection,
+                        glm::vec3(1.0f, 0.0f, 0.0f));
+                }
+                glBindVertexArray(0);
+            }
 
-        // Renderizar lineas de depuracion de las mallas de colision || Render debug lines of the collision meshes
-        if (hitboxDebug)
-        {
-            hitboxShader.Use();
-            glm::mat4 projection = glm::perspective(glm::radians(camera.GetZoom()),
-                static_cast<float>(widthR) / static_cast<float>(heightR),
-                0.1f,
-                100.0f);
+            // 5. Aplicar la capa/overlay de la transición del Tour si corresponde
+            if (tourFadeOpacity > 0.0f) {
+                glEnable(GL_BLEND);
+                glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+                glDisable(GL_DEPTH_TEST);
 
-            for (auto& obj : scene.GetObjects())
-            {
-                glm::mat4 modelMatrix = obj.GetModelMatrix();
-                DrawMeshCollider(obj.model->collider,
-                    hitboxShader,
-                    obj.GetModelMatrix(),
-                    camera.GetViewMatrix(),
-                    projection,
-                    glm::vec3(1.0f, 0.0f, 0.0f));
+                glm::vec4 fadeColor = tourFadeSettings.color;
+                fadeColor.a *= tourFadeOpacity;
+                menu.RenderOverlay(framebufferWidth, framebufferHeight, fadeColor);
+
+                glDisable(GL_BLEND);
+                glEnable(GL_DEPTH_TEST);
+                glBindVertexArray(0);
+            }
+
+            // 6. Si el juego está activo pero abriste el menú de pausa, lo superponemos en el FBO
+            if (menuOpen) {
+                glEnable(GL_BLEND);
+                glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+                glDisable(GL_DEPTH_TEST);
+
+                menu.Render(framebufferWidth, framebufferHeight);
+
+                glDisable(GL_BLEND);
+                glEnable(GL_DEPTH_TEST);
+                glBindVertexArray(0);
             }
         }
 
-        if (tourFadeOpacity > 0.0f)
-        {
-            glm::vec4 fadeColor = tourFadeSettings.color;
-            fadeColor.a *= tourFadeOpacity;
-            menu.RenderOverlay(framebufferWidth, framebufferHeight, fadeColor);
-        }
+        // =========================================================================
+        // PASO 2: Desvincular el HDR FBO y Ejecutar el Post-Procesado de Bloom
+        // =========================================================================
+        glBindFramebuffer(GL_FRAMEBUFFER, 0); // Regresamos al buffer por defecto del monitor
 
-        if (menuOpen)
-        {
-            menu.Render(framebufferWidth, framebufferHeight);
-        }
+        // AISLAMIENTO TOTAL: Forzar la limpieza de estados antes del dibujo del Quad de Bloom
+        glUseProgram(0);           // Matar cualquier shader activo residual (ej: fuentes/UI del menú)
+        glBindVertexArray(0);      // Asegurar que no haya VAO enlazado incorrectamente
+        glDisable(GL_BLEND);       // El quad de Bloom debe sobreescribir la pantalla de manera 100% opaca
+        glDisable(GL_DEPTH_TEST);  // Apagar profundidad porque el Quad de post-procesado es 2D puro
 
-        // Refrescar y alternar buffers de dibujo de la ventana || Refresh and swap window drawing buffers
+        // Procesar texturas: Extraer brillos -> Aplicar Blur -> Combinar aditivamente en pantalla
+        bloom.Render(bloomEnabled);
+
+        // Intercambiar los buffers de dibujo para mostrar el fotograma final estable en el monitor
         glfwSwapBuffers(window);
     }
+    // =========================================================================
+    // FIN DEL BUCLE DE RENDERIZADO PRINCIPAL
+    // =========================================================================
+
 
 
     sound.StopAmbient();
