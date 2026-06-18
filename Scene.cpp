@@ -68,32 +68,30 @@ void Scene::SetLight(std::size_t index, const Light& light)
 }
 
 // Realizar el bucle principal de renderizado de la escena || Perform the main scene rendering loop
-void Scene::Draw(Shader& shader, Shader& emissiveShader, Camera& camera, float windowWidth, float windowHeight)
+void Scene::Draw(Shader& shader, Shader& emissiveShader, Camera& camera, const glm::mat4& projection)
 {
-    // Calcular matrices de vista y proyeccion perspectiva || Calculate view and perspective projection matrices
-    glm::mat4 view = camera.GetViewMatrix();
-    glm::mat4 projection = glm::perspective(
-        glm::radians(camera.GetZoom()),
-        windowWidth / windowHeight,
-        0.1f,
-        1000.0f
-    );
+    glEnable(GL_DEPTH_TEST);
+    glDepthFunc(GL_LESS);
+    glDepthMask(GL_TRUE);
 
-    // Configurar estados y variables uniformes del shader de iluminacion || Configure states and uniform variables of the lighting shader
+    glm::mat4 view = camera.GetViewMatrix();
+    // ELIMINAMOS el cálculo local de 'projection' porque ahora viene como parámetro
+
     shader.Use();
     shader.SetMat4("view", view);
     shader.SetMat4("projection", projection);
+
     shader.SetVec3("viewPos", camera.GetPosition());
     fogSettings.Apply(shader);
 
-    // Limitar la cantidad maxima de luces procesadas || Limit the maximum amount of lights processed
+    // Limitar la cantidad máxima de luces procesadas
     int lightCount = (int)lights.size();
     if (lightCount > MAX_LIGHTS)
         lightCount = MAX_LIGHTS;
 
     shader.SetInt("numLights", lightCount);
 
-    // Transferir datos estructurados de las luces al shader || Transfer structured light data to the shader
+    // Transferir datos estructurados de las luces al shader
     for (int i = 0; i < lightCount; i++)
     {
         const Light& light = lights[i];
@@ -106,35 +104,37 @@ void Scene::Draw(Shader& shader, Shader& emissiveShader, Camera& camera, float w
         shader.SetFloat(base + "intensity", light.intensity);
     }
 
-    // Calcular matrices de transformacion y dibujar objetos || Calculate transformation matrices and draw objects
+    // Calcular matrices de transformación y dibujar objetos del mapa
     for (auto& obj : objects)
     {
         glm::mat4 modelMat = glm::mat4(1.0f);
         modelMat = glm::translate(modelMat, obj.transform.position);
 
-        // Aplicar rotaciones en los ejes X, Y y Z || Apply rotations on X, Y and Z axes
-        modelMat = glm::rotate(modelMat,
-            glm::radians(obj.transform.rotation.x),
-            glm::vec3(1, 0, 0));
-        modelMat = glm::rotate(modelMat,
-            glm::radians(obj.transform.rotation.y),
-            glm::vec3(0, 1, 0));
-        modelMat = glm::rotate(modelMat,
-            glm::radians(obj.transform.rotation.z),
-            glm::vec3(0, 0, 1));
+        // Aplicar rotaciones en los ejes X, Y y Z
+        modelMat = glm::rotate(modelMat, glm::radians(obj.transform.rotation.x), glm::vec3(1, 0, 0));
+        modelMat = glm::rotate(modelMat, glm::radians(obj.transform.rotation.y), glm::vec3(0, 1, 0));
+        modelMat = glm::rotate(modelMat, glm::radians(obj.transform.rotation.z), glm::vec3(0, 0, 1));
 
         modelMat = glm::scale(modelMat, obj.transform.scale);
 
         shader.SetMat4("model", modelMat);
         obj.model->Draw();
     }
+    glBindVertexArray(0); // Desvincular VAO residual de los objetos opacos
 
-    // Configurar shader emisivo para las esferas de luz || Configure emissive shader for light spheres
+    // -------------------------------------------------------------------------
+    // RENDERIZADO EMISIVO (BOMBILLAS DE LUZ) CON PROTECCIÓN DE PROFUNDIDAD
+    // -------------------------------------------------------------------------
     emissiveShader.Use();
     emissiveShader.SetMat4("view", view);
     emissiveShader.SetMat4("projection", projection);
 
-    // Dibujar representaciones graficas de los focos de luz || Draw graphical representations of light sources
+    // Forzar que el test de profundidad esté activo al dibujar las bombillas
+    // para que la geometría opaca del mapa (paredes) las tape correctamente.
+    glEnable(GL_DEPTH_TEST);
+    glDepthMask(GL_FALSE); // No necesitamos escribir profundidad de las bombillas, solo leerla
+
+    // Dibujar representaciones gráficas de los focos de luz
     for (const Light& light : lights)
     {
         if (lightSphere && light.drawSphere)
@@ -150,6 +150,9 @@ void Scene::Draw(Shader& shader, Shader& emissiveShader, Camera& camera, float w
             lightSphere->Draw();
         }
     }
-}
 
+    // Restaurar permisos de escritura del z-buffer y desvincular recursos
+    glDepthMask(GL_TRUE);
+    glBindVertexArray(0);
+}
 

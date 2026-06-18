@@ -34,8 +34,7 @@ uniform Light lights[MAX_LIGHTS];
 uniform float spotCutOff;      
 uniform float spotOuterCutOff; 
 
-// Reusable fog layer. Tune the matching values in FogSettings.h.
-// Capa de niebla reutilizable. Modifica los valores equivalentes en FogSettings.h.
+// Capa de niebla reutilizable || Reusable fog layer
 struct FogLayer
 {
     vec3 color;
@@ -47,8 +46,7 @@ struct FogLayer
     float maxOpacity;
 };
 
-// Two-layer fog: local model fog plus far boundary fog.
-// Niebla de dos capas: niebla local del modelo mas niebla lejana de limite.
+// Niebla de dos capas || Two-layer fog
 struct Fog
 {
     bool enabled;
@@ -58,8 +56,7 @@ struct Fog
 
 uniform Fog fog;
 
-// Calculate one fog layer using distance and optional height falloff.
-// Calcula una capa de niebla usando distancia y desvanecido vertical opcional.
+// Calcula una capa de niebla usando distancia y desvanecido vertical opcional || Calculate one fog layer using distance and optional height falloff
 float CalculateFogAmount(FogLayer layer)
 {
     float cameraDistance = length(viewPos - FragPos);
@@ -74,8 +71,7 @@ float CalculateFogAmount(FogLayer layer)
     return clamp(distanceFog * densityFog * heightFog, 0.0, layer.maxOpacity);
 }
 
-// Mix scene lighting with local fog first, then far enclosing fog.
-// Mezcla la iluminacion con niebla local primero y luego con niebla lejana de encierro.
+// Mezcla la iluminacion con niebla local primero y luego con niebla lejana de encierro || Mix scene lighting with local fog first, then far enclosing fog
 vec3 ApplyFog(vec3 color)
 {
     if (!fog.enabled)
@@ -153,7 +149,7 @@ void main()
         vec3 H = normalize(L + V);
         float spec = pow(max(dot(N, H), 0.0), 32.0);
 
-        // Calcular color final de la luz || Calculate final light color
+        // Calcular color final de la luz combinando su color e intensidad HDR || Calculate final light color using HDR color and intensity
         vec3 lightColor = lights[i].color * lights[i].intensity;
 
         vec3 diffuse = diff * lightColor * texColor.rgb;
@@ -162,11 +158,10 @@ void main()
         // Acumular iluminacion atenuada || Accumulate attenuated lighting
         result += (diffuse + specular) * attenuation;
     }
-
-    // Aplicar mapeo de tonos simple || Apply simple tonemapping
-    result = result / (result + vec3(1.0));
+    
+    // Aplicar las capas de niebla sobre el rango dinámico HDR puro
     result = ApplyFog(result);
 
-    // Asignar color final con el canal alpha original || Assign final color with original alpha channel
+    // Asignar color final reteniendo la información HDR para el pipeline de post-procesado
     FragColor = vec4(result, texColor.a);
 }

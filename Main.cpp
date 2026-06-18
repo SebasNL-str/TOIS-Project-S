@@ -150,15 +150,21 @@ int main()
     glm::vec3 hdrSecondaryColor = baseLightColor * secondaryLightIntensity; // Resultado: {2.75f, 2.25f, 0.75f}
 
     // Agregar fuentes de luz puntuales con intensidades HDR corregidas
-    scene.AddLight({ LightType::Point, {0.0f, 2.5f, 35.0f}, {0.0f, -1.0f, 0.0f}, hdrMainColor, 2.5f, true });
-    scene.AddLight({ LightType::Point, {10.0f, 2.5f, 40.0f}, {0.0f, -1.0f, 0.0f}, hdrMainColor, 2.5f, true });
-    scene.AddLight({ LightType::Point, {10.0f, 2.5f, 50.0f}, {0.0f, -1.0f, 0.0f}, hdrMainColor, 2.5f, true });
-    scene.AddLight({ LightType::Point, {-3.5f, 2.5f, 59.5f}, {0.0f, -1.0f, 0.0f}, hdrMainColor, 2.5f, true });
+// El color vuelve a ser el original (rango 0.0 a 1.0)
+
+    // Ajustamos la INTENSIDAD de la estructura para el HDR (Prueba con 3.0f o 4.0f)
+    float hdrIntensity = 4.0f;
+
+    scene.AddLight({ LightType::Point, {0.0f, 2.5f, 35.0f}, {0.0f, -1.0f, 0.0f}, baseLightColor, hdrIntensity, true });
+    scene.AddLight({ LightType::Point, {10.0f, 2.5f, 40.0f}, {0.0f, -1.0f, 0.0f}, baseLightColor, hdrIntensity, true });
+    scene.AddLight({ LightType::Point, {10.0f, 2.5f, 50.0f}, {0.0f, -1.0f, 0.0f}, baseLightColor, hdrIntensity, true });
+    scene.AddLight({ LightType::Point, {-3.5f, 2.5f, 59.5f}, {0.0f, -1.0f, 0.0f}, baseLightColor, hdrIntensity, true });
     
+    /*
     scene.AddLight({ LightType::Point, {-1.5f, 2.5f, 62.5f}, {0.0f, -1.0f, 0.0f}, hdrSecondaryColor, 1.0f, false });
     scene.AddLight({ LightType::Point, {10.5f, 2.5f, 62.5f}, {0.0f, -1.0f, 0.0f}, hdrSecondaryColor, 1.0f, false });
     scene.AddLight({ LightType::Point, {10.5f, 2.5f, 25.0f}, {0.0f, -1.0f, 0.0f}, hdrSecondaryColor, 1.0f, false });
-    scene.AddLight({ LightType::Point, {-1.5f, 2.5f, 25.0f}, {0.0f, -1.0f, 0.0f}, hdrSecondaryColor, 1.0f, false });
+    scene.AddLight({ LightType::Point, {-1.5f, 2.5f, 25.0f}, {0.0f, -1.0f, 0.0f}, hdrSecondaryColor, 1.0f, false });*/
 
     // Directional light
     scene.AddLight({ LightType::Directional, {0.0f, 0.0f, 0.0f}, {-0.2f, -1.0f, -0.3f}, {0.45f, 0.55f, 0.70f}, 1.2f, false });
@@ -239,6 +245,13 @@ int main()
         glfwGetFramebufferSize(window, &framebufferWidth, &framebufferHeight);
         if (framebufferWidth <= 0) framebufferWidth = SCREEN_WIDTH;
         if (framebufferHeight <= 0) framebufferHeight = SCREEN_HEIGHT;
+
+        glm::mat4 globalProjection = glm::perspective(
+            glm::radians(camera.GetZoom()),
+            (float)framebufferWidth / (float)framebufferHeight,
+            0.1f,
+            100.0f
+        );
 
         // Establecer de forma dinámica las dimensiones del área de dibujo de OpenGL
         glViewport(0, 0, framebufferWidth, framebufferHeight);
@@ -332,7 +345,11 @@ int main()
             glEnable(GL_DEPTH_TEST);
             glDisable(GL_BLEND);
 
-            // 1. Dibujar el cielo de fondo (Skybox) según el tipo seleccionado
+            // -----------------------------------------------------------------
+            // 1. Dibujar el cielo de fondo (Skybox) con test inclusivo LEQUAL
+            // -----------------------------------------------------------------
+            glDepthFunc(GL_LEQUAL); // Permite dibujar fragmentos en el infinito profundo (Z = 1.0)
+
             if (activeType == SkyboxType::Cube) {
                 skyboxShader.Use();
                 skybox.Draw(skyboxShader, camera, (float)framebufferWidth, (float)framebufferHeight);
@@ -342,13 +359,18 @@ int main()
                 sphereSkybox.Draw(skyboxSphereShader, camera, (float)framebufferWidth, (float)framebufferHeight);
             }
 
+            // Regresar inmediatamente a GL_LESS antes de pintar los objetos del escenario
+            glDepthFunc(GL_LESS);
+
+            // -----------------------------------------------------------------
             // 2. Activar el shader de los objetos e iluminar los límites de la linterna (Spotlight)
+            // -----------------------------------------------------------------
             shader.Use();
             shader.SetFloat("spotCutOff", glm::cos(glm::radians(12.5f)));
             shader.SetFloat("spotOuterCutOff", glm::cos(glm::radians(17.5f)));
 
             // 3. Dibujar todos los elementos opacos y emisivos del escenario
-            scene.Draw(shader, emissiveShader, camera, (float)framebufferWidth, (float)framebufferHeight);
+            scene.Draw(shader, emissiveShader, camera, globalProjection);
             glBindVertexArray(0);
 
             // 4. Renderizar líneas de depuración de colisiones (Hitboxes) en caso de estar activo

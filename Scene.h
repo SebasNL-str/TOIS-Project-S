@@ -67,7 +67,7 @@ public:
     const FogSettings& GetFogSettings() const { return fogSettings; }
 
     // Renderizar todos los elementos de la escena || Render all elements of the scene
-    void Draw(Shader& shader, Shader& emissiveShader, Camera& camera, float windowWidth, float windowHeight);
+    void Draw(Shader& shader, Shader& emissiveShader, Camera& camera, const glm::mat4& projection);
 
     // Renderizar las cajas de colision de los objetos || Render object collision boxes
     void DrawHitboxes(Shader& hitboxShader, Camera& camera, const glm::mat4& projection);

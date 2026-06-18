@@ -21,6 +21,10 @@ public:
     // Recursos accesibles desde el loop
     GLuint hdrFBO;
     GLuint colorBuffer;
+    unsigned int rboDepth;
+
+    int m_width;  // <--- AGREGA ESTA VARIABLE
+    int m_height; // <--- AGREGA ESTA VARIABLE
 
 private:
     GLuint pingpongFBO[2];
