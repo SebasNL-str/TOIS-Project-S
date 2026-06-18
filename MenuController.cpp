@@ -54,10 +54,29 @@ namespace MenuContent
     };
 }
 
+namespace
+{
+    void ApplyMenuVisualStyle(MenuRenderer& menu)
+    {
+        MenuSettings& settings = menu.EditSettings();
+        settings.drawPanel = gameStarted;
+        settings.useBackgroundImage = !gameStarted;
+        settings.backgroundColor = gameStarted
+            ? glm::vec4(0.0f, 0.0f, 0.0f, 0.0f)
+            : glm::vec4(0.03f, 0.03f, 0.04f, 1.0f);
+        settings.panelCenterXPercent = gameStarted ? 0.29f : 0.50f;
+        settings.panelCenterYPercent = 0.50f;
+        settings.panelColor = gameStarted
+            ? glm::vec4(0.03f, 0.03f, 0.04f, 0.62f)
+            : glm::vec4(0.08f, 0.08f, 0.10f, 0.0f);
+    }
+}
+
 // Configurar y desplegar la interfaz del menu principal || Configure and display the main menu interface
 void ShowMainMenu(MenuRenderer& menu)
 {
     currentMenuScreen = MenuScreen::Main;
+    ApplyMenuVisualStyle(menu);
     menu.SetTitle(MenuContent::MainTitle);
     menu.SetSubtitle(MenuContent::MainSubtitle);
     menu.SetFooter(MenuContent::SelectFooter);
@@ -77,6 +96,7 @@ void ShowMainMenu(MenuRenderer& menu)
 void ShowSettingsMenu(MenuRenderer& menu, const SoundManager& sound, bool hitboxDebug)
 {
     currentMenuScreen = MenuScreen::Settings;
+    ApplyMenuVisualStyle(menu);
     menu.SetTitle(MenuContent::SettingsTitle);
     menu.SetSubtitle(MenuContent::SettingsLabel);
     menu.SetFooter(MenuContent::VolumeFooter);
@@ -92,6 +112,7 @@ void ShowSettingsMenu(MenuRenderer& menu, const SoundManager& sound, bool hitbox
 void ShowHelpMenu(MenuRenderer& menu)
 {
     currentMenuScreen = MenuScreen::Help;
+    ApplyMenuVisualStyle(menu);
     menu.SetTitle(MenuContent::HelpTitle);
     menu.SetSubtitle("CONTROLS");
     menu.SetFooter(MenuContent::BackFooter);
@@ -103,6 +124,7 @@ void ShowHelpMenu(MenuRenderer& menu)
 void ShowCreditsMenu(MenuRenderer& menu)
 {
     currentMenuScreen = MenuScreen::Credits;
+    ApplyMenuVisualStyle(menu);
     menu.SetTitle(MenuContent::CreditsTitle);
     menu.SetSubtitle("TEAM");
     menu.SetFooter(MenuContent::BackFooter);

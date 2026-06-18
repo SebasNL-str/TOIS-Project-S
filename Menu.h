@@ -44,9 +44,12 @@ struct MenuSettings
     glm::vec4 selectedTextColor = glm::vec4(0.05f, 0.05f, 0.06f, 1.0f);
     glm::vec4 selectedColor = glm::vec4(0.85f, 0.78f, 0.55f, 0.95f);
     glm::vec4 footerColor = glm::vec4(0.62f, 0.62f, 0.60f, 1.0f);
+    bool drawPanel = false;
 
     // Dimensiones y escalas visuales || Dimensions and visual scales
     GLfloat panelWidth = 430.0f;
+    GLfloat panelCenterXPercent = 0.50f;
+    GLfloat panelCenterYPercent = 0.50f;
     GLfloat titleScale = 4.0f;
     GLfloat subtitleScale = 2.0f;
     GLfloat itemScale = 2.5f;
@@ -381,6 +384,11 @@ public:
         GLfloat subtitleScale = GetFittedScale(settings.subtitle, settings.subtitleScale, textAreaWidth);
         GLfloat footerScale = GetFittedScale(settings.footer, settings.footerScale, textAreaWidth);
 
+        if (settings.drawPanel)
+        {
+            DrawRect(panelX, panelY, panelWidth, panelHeight, settings.panelColor);
+        }
+
         DrawAnimatedCenteredText(MenuAnimatedElement::Title, 0, settings.title, panelX, panelY + 34.0f, panelWidth, titleScale, settings.titleColor, panelWidth, panelHeight);
         DrawAnimatedCenteredText(MenuAnimatedElement::Subtitle, 0, settings.subtitle, panelX, panelY + 82.0f, panelWidth, subtitleScale, settings.textColor, panelWidth, panelHeight);
 
@@ -580,7 +588,9 @@ private:
         layout.panelHeight = 220.0f + static_cast<GLfloat>(settings.items.size()) * layout.itemSpacing;
         layout.panelHeight = std::min(layout.panelHeight, height - 40.0f);
 
-        glm::vec2 menuPosition = introAnimation.GetMenuOrigin(width, height, layout.panelWidth, layout.panelHeight);
+        glm::vec2 menuPosition(
+            width * settings.panelCenterXPercent - layout.panelWidth * 0.5f,
+            height * settings.panelCenterYPercent - layout.panelHeight * 0.5f);
         layout.panelX = std::max(20.0f, std::min(menuPosition.x, width - layout.panelWidth - 20.0f));
         layout.panelY = std::max(20.0f, std::min(menuPosition.y, height - layout.panelHeight - 20.0f));
         layout.itemY = layout.panelY + 130.0f;

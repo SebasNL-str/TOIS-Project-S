@@ -299,8 +299,8 @@ int main()
         // Limpiar buffers de color y profundidad de la pantalla || Clear screen color and depth buffers
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        // Renderizar unicamente la interfaz si el juego esta en pausa || Render only the interface if the game is paused
-        if (menuOpen || !gameStarted)
+        // Renderizar unicamente el menu inicial antes de iniciar el tour || Render only the initial menu before starting the tour
+        if (!gameStarted)
         {
             menu.Render(framebufferWidth, framebufferHeight);
             glfwSwapBuffers(window);
@@ -354,6 +354,11 @@ int main()
             glm::vec4 fadeColor = tourFadeSettings.color;
             fadeColor.a *= tourFadeOpacity;
             menu.RenderOverlay(framebufferWidth, framebufferHeight, fadeColor);
+        }
+
+        if (menuOpen)
+        {
+            menu.Render(framebufferWidth, framebufferHeight);
         }
 
         // Refrescar y alternar buffers de dibujo de la ventana || Refresh and swap window drawing buffers
