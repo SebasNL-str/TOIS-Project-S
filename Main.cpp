@@ -40,6 +40,16 @@ float lastY = SCREEN_HEIGHT * 0.5f;
 // Estado de la pantalla activa del menu || Active menu screen state
 MenuScreen currentMenuScreen = MenuScreen::Main;
 
+struct TourFadeSettings
+{
+    float durationSeconds = 1.0f;
+    glm::vec4 color = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
+};
+
+TourFadeSettings tourFadeSettings;
+bool tourFadeActive = false;
+float tourFadeOpacity = 0.0f;
+
 int main()
 {
     int widthR, heightR;
@@ -219,6 +229,24 @@ int main()
         deltaTime = currentFrame - lastFrame;
         lastFrame = currentFrame;
 
+        if (tourFadeActive)
+        {
+            if (tourFadeSettings.durationSeconds <= 0.0f)
+            {
+                tourFadeOpacity = 0.0f;
+                tourFadeActive = false;
+            }
+            else
+            {
+                tourFadeOpacity -= deltaTime / tourFadeSettings.durationSeconds;
+                if (tourFadeOpacity <= 0.0f)
+                {
+                    tourFadeOpacity = 0.0f;
+                    tourFadeActive = false;
+                }
+            }
+        }
+
         // Capturar eventos del sistema y procesar entradas del menu || Capture system events and process menu inputs
         glfwPollEvents();
         processMenuInput(window, menu, sound, hitboxDebug);
@@ -319,6 +347,13 @@ int main()
                     projection,
                     glm::vec3(1.0f, 0.0f, 0.0f));
             }
+        }
+
+        if (tourFadeOpacity > 0.0f)
+        {
+            glm::vec4 fadeColor = tourFadeSettings.color;
+            fadeColor.a *= tourFadeOpacity;
+            menu.RenderOverlay(framebufferWidth, framebufferHeight, fadeColor);
         }
 
         // Refrescar y alternar buffers de dibujo de la ventana || Refresh and swap window drawing buffers

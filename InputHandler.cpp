@@ -11,6 +11,8 @@ extern bool firstMouse;
 extern float lastX;
 extern float lastY;
 extern MenuScreen currentMenuScreen;
+extern bool tourFadeActive;
+extern float tourFadeOpacity;
 
 namespace
 {
@@ -29,6 +31,8 @@ namespace
             {
             case 0:
                 gameStarted = true;
+                tourFadeActive = true;
+                tourFadeOpacity = 1.0f;
                 SetMenuOpen(window, menu, sound, false);
                 break;
             case 1:

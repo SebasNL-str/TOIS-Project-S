@@ -413,6 +413,13 @@ public:
         End();
     }
 
+    void RenderOverlay(int screenWidth, int screenHeight, const glm::vec4& color)
+    {
+        Begin(screenWidth, screenHeight);
+        DrawRect(0.0f, 0.0f, width, height, color);
+        End();
+    }
+
     // Configurar estados de OpenGL para el menu || Configure OpenGL states for the menu
     void Begin(int screenWidth, int screenHeight)
     {
