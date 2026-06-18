@@ -1,5 +1,10 @@
 #include "LoadingScreen.h"
 
+namespace
+{
+    void UpdateLoadingScreenWithOpacity(GLFWwindow* window, GLuint barVAO, GLuint barVBO, Shader& loadingShader, int loadedAssets, int totalAssets, float opacity);
+}
+
 // Inicializar los buffers para la barra de progreso || Initialize progress bar buffers
 void InitProgressBar(GLuint& barVAO, GLuint& barVBO) {
     glGenVertexArrays(1, &barVAO);
@@ -118,8 +123,35 @@ void DrawLoadingSpinner(Shader& loadingShader, float time) {
     glDeleteVertexArrays(1, &spinnerVAO);
 }
 
-// Actualizar el bucle de la ventana de carga || Update the loading window loop
 void UpdateLoadingScreen(GLFWwindow* window, GLuint barVAO, GLuint barVBO, Shader& loadingShader, int loadedAssets, int totalAssets) {
+    UpdateLoadingScreenWithOpacity(window, barVAO, barVBO, loadingShader, loadedAssets, totalAssets, 1.0f);
+}
+
+void PlayLoadingFadeOut(GLFWwindow* window, GLuint barVAO, GLuint barVBO, Shader& loadingShader, const LoadingFadeSettings& settings) {
+    if (settings.durationSeconds <= 0.0f) {
+        UpdateLoadingScreenWithOpacity(window, barVAO, barVBO, loadingShader, 1, 1, 0.0f);
+        return;
+    }
+
+    float startTime = static_cast<float>(glfwGetTime());
+    float elapsed = 0.0f;
+
+    while (elapsed < settings.durationSeconds && !glfwWindowShouldClose(window)) {
+        elapsed = static_cast<float>(glfwGetTime()) - startTime;
+        float fadeProgress = elapsed / settings.durationSeconds;
+        if (fadeProgress > 1.0f) fadeProgress = 1.0f;
+        if (fadeProgress < 0.0f) fadeProgress = 0.0f;
+
+        float opacity = 1.0f - fadeProgress;
+        UpdateLoadingScreenWithOpacity(window, barVAO, barVBO, loadingShader, 1, 1, opacity);
+        glfwWaitEventsTimeout(settings.frameStepSeconds);
+    }
+}
+
+// Actualizar el bucle de la ventana de carga || Update the loading window loop
+namespace
+{
+void UpdateLoadingScreenWithOpacity(GLFWwindow* window, GLuint barVAO, GLuint barVBO, Shader& loadingShader, int loadedAssets, int totalAssets, float opacity) {
     int width, height;
     glfwGetFramebufferSize(window, &width, &height);
     glViewport(0, 0, width, height);
@@ -134,6 +166,13 @@ void UpdateLoadingScreen(GLFWwindow* window, GLuint barVAO, GLuint barVBO, Shade
     // Desactivar pruebas graficas 3D de fondo || Disable background 3D graphic tests
     glDisable(GL_DEPTH_TEST);
     glDisable(GL_CULL_FACE);
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+    if (opacity > 1.0f) opacity = 1.0f;
+    if (opacity < 0.0f) opacity = 0.0f;
+    loadingShader.Use();
+    loadingShader.SetFloat("loadingOpacity", opacity);
 
     // Renderizar barra y spinner decorativo || Render bar and decorative spinner
     DrawProgressBar(barVAO, barVBO, loadingShader, progress);
@@ -141,8 +180,11 @@ void UpdateLoadingScreen(GLFWwindow* window, GLuint barVAO, GLuint barVBO, Shade
     DrawLoadingSpinner(loadingShader, currentTime);
 
     // Restaurar pruebas graficas y refrescar buffers || Restore graphic tests and swap buffers
+    loadingShader.SetFloat("loadingOpacity", 1.0f);
+    glDisable(GL_BLEND);
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_CULL_FACE);
     glfwSwapBuffers(window);
     glfwPollEvents();
+}
 }
