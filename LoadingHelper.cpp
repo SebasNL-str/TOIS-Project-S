@@ -9,9 +9,9 @@ GAssets ExecuteInteractiveLoading(GLFWwindow* window, Shader& loadingShader, GLu
 
     // Arreglo con las rutas de las caras del skybox || Array containing the paths of the skybox faces
     std::vector<std::string> faces = {
-        "Resources/Skybox/Cubemaps/Night/px.png", "Resources/Skybox/Cubemaps/Night/nx.png",
-        "Resources/Skybox/Cubemaps/Night/py.png", "Resources/Skybox/Cubemaps/Night/ny.png",
-        "Resources/Skybox/Cubemaps/Night/pz.png", "Resources/Skybox/Cubemaps/Night/nz.png"
+        "Resources/Skybox/Cubemaps/eskaibocs/px.png", "Resources/Skybox/Cubemaps/eskaibocs/nx.png",
+        "Resources/Skybox/Cubemaps/eskaibocs/py.png", "Resources/Skybox/Cubemaps/eskaibocs/ny.png",
+        "Resources/Skybox/Cubemaps/eskaibocs/pz.png", "Resources/Skybox/Cubemaps/eskaibocs/nz.png"
     };
 
     // Bucle principal de la maquinaria de carga || Main loop of the loading machinery

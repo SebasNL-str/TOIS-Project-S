@@ -76,28 +76,35 @@ public:
     }
 
     // Procesa entradas recibidas del teclado || Processes input received from any keyboard-like input system. Accepts input parameter in the form of camera defined ENUM (to abstract it from windowing systems)
-    void ProcessKeyboard(Camera_Movement direction, GLfloat deltaTime)
+    void ProcessKeyboard(Camera_Movement direction, GLfloat deltaTime, GLboolean walkMode = true)
     {
         GLfloat velocity = this->movementSpeed * deltaTime;
 
+        // 1. Proyectamos el vector frontal en el plano XZ (eliminamos la componente Y para no volar)
+        glm::vec3 walkFront = glm::normalize(glm::vec3(this->front.x, 0.0f, this->front.z));
+
         if (direction == FORWARD)
         {
-            this->position += this->front * velocity;
+            // Si walkMode es true, usa el vector del suelo; si es false, vuela libre como antes
+            this->position += (walkMode ? walkFront : this->front) * velocity;
         }
-
         if (direction == BACKWARD)
         {
-            this->position -= this->front * velocity;
+            this->position -= (walkMode ? walkFront : this->front) * velocity;
         }
-
         if (direction == LEFT)
         {
             this->position -= this->right * velocity;
         }
-
         if (direction == RIGHT)
         {
             this->position += this->right * velocity;
+        }
+
+        // 2. Bloquear la altura de la cámara respecto al suelo (eje Y)
+        if (walkMode)
+        {
+            this->position.y = 1.7f; // Cambia este valor si quieres que el personaje sea más alto o más bajo
         }
     }
 
