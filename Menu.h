@@ -324,13 +324,10 @@ public:
         GLfloat panelHeight = 220.0f + static_cast<GLfloat>(settings.items.size()) * 46.0f;
         panelHeight = std::min(panelHeight, height - 40.0f);
 
-        // Calcular coordenadas del panel, con animacion inicial si aplica || Calculate panel coordinates with intro animation when applicable
-        glm::vec2 panelPosition = introAnimation.GetPanelPosition(width, height, panelWidth, panelHeight);
-        GLfloat panelX = std::max(20.0f, std::min(panelPosition.x, width - panelWidth - 20.0f));
-        GLfloat panelY = std::max(20.0f, std::min(panelPosition.y, height - panelHeight - 20.0f));
-
-        // Dibujar caja del panel || Draw panel box
-        DrawRect(panelX, panelY, panelWidth, panelHeight, settings.panelColor);
+        // Calcular coordenadas finales del menu, sin fondo oscuro || Calculate final menu coordinates without dark panel
+        glm::vec2 menuPosition = introAnimation.GetMenuOrigin(width, height, panelWidth, panelHeight);
+        GLfloat panelX = std::max(20.0f, std::min(menuPosition.x, width - panelWidth - 20.0f));
+        GLfloat panelY = std::max(20.0f, std::min(menuPosition.y, height - panelHeight - 20.0f));
 
         // Dibujar titulo y subtitulo || Draw title and subtitle
         GLfloat textAreaWidth = panelWidth - 56.0f;
@@ -338,8 +335,8 @@ public:
         GLfloat subtitleScale = GetFittedScale(settings.subtitle, settings.subtitleScale, textAreaWidth);
         GLfloat footerScale = GetFittedScale(settings.footer, settings.footerScale, textAreaWidth);
 
-        DrawCenteredText(settings.title, panelX, panelY + 34.0f, panelWidth, titleScale, settings.titleColor);
-        DrawCenteredText(settings.subtitle, panelX, panelY + 82.0f, panelWidth, subtitleScale, settings.textColor);
+        DrawAnimatedCenteredText(MenuAnimatedElement::Title, 0, settings.title, panelX, panelY + 34.0f, panelWidth, titleScale, settings.titleColor, panelWidth, panelHeight);
+        DrawAnimatedCenteredText(MenuAnimatedElement::Subtitle, 0, settings.subtitle, panelX, panelY + 82.0f, panelWidth, subtitleScale, settings.textColor, panelWidth, panelHeight);
 
         // Configurar posiciones de la lista || Configure list positions
         GLfloat itemY = panelY + 130.0f;
@@ -353,18 +350,18 @@ public:
             bool selected = static_cast<int>(i) == selectedIndex;
 
             // Dibujar indicador si la opcion esta seleccionada || Draw indicator if item is selected
-            if (selected)
+            if (selected && !introAnimation.IsPlaying())
             {
                 DrawRect(panelX + itemPadding, rowY - 8.0f, panelWidth - itemPadding * 2.0f, itemHeight, settings.selectedColor);
             }
 
             // Dibujar texto de la opcion || Draw item text
             GLfloat fittedItemScale = GetFittedScale(settings.items[i], settings.itemScale, textAreaWidth);
-            DrawCenteredText(settings.items[i], panelX, rowY, panelWidth, fittedItemScale, selected ? settings.selectedTextColor : settings.textColor);
+            DrawAnimatedCenteredText(MenuAnimatedElement::Item, i, settings.items[i], panelX, rowY, panelWidth, fittedItemScale, selected && !introAnimation.IsPlaying() ? settings.selectedTextColor : settings.textColor, panelWidth, panelHeight);
         }
 
         // Dibujar pie de pagina || Draw footer
-        DrawCenteredText(settings.footer, panelX, panelY + panelHeight - 40.0f, panelWidth, footerScale, settings.footerColor);
+        DrawAnimatedCenteredText(MenuAnimatedElement::Footer, settings.items.size(), settings.footer, panelX, panelY + panelHeight - 40.0f, panelWidth, footerScale, settings.footerColor, panelWidth, panelHeight);
 
         // Restaurar estado grafico || Restore graphic state
         End();
@@ -522,6 +519,42 @@ private:
         GLfloat textWidth = MeasureText(text, scale);
         GLfloat textX = x + (areaWidth - textWidth) * 0.5f;
         DrawText(text, textX, y, scale, color);
+    }
+
+    // Dibujar texto centrado aplicando animacion por elemento || Draw centered text with per-element animation
+    void DrawAnimatedCenteredText(
+        MenuAnimatedElement element,
+        std::size_t itemIndex,
+        const std::string& text,
+        GLfloat x,
+        GLfloat y,
+        GLfloat areaWidth,
+        GLfloat scale,
+        const glm::vec4& color,
+        GLfloat menuWidth,
+        GLfloat menuHeight)
+    {
+        glm::vec2 finalPosition(x + areaWidth * 0.5f, y);
+        MenuElementTransform transform = introAnimation.GetElementTransform(
+            element,
+            itemIndex,
+            finalPosition,
+            scale,
+            width,
+            height,
+            menuWidth,
+            menuHeight);
+
+        GLfloat animatedTextWidth = MeasureText(text, transform.scale);
+        glm::vec4 animatedColor = color;
+        animatedColor.a *= transform.opacity;
+
+        if (animatedColor.a <= 0.01f)
+        {
+            return;
+        }
+
+        DrawText(text, transform.position.x - animatedTextWidth * 0.5f, transform.position.y, transform.scale, animatedColor);
     }
 
     // Dibujar el fondo del menu (imagen o color solido) || Draw menu background (image or solid color)
