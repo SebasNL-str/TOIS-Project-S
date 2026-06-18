@@ -289,6 +289,71 @@ public:
         selectedIndex = (selectedIndex + direction + itemCount) % itemCount;
     }
 
+    // Obtener item bajo coordenadas del mouse || Get item under mouse coordinates
+    int GetItemIndexAt(GLfloat mouseX, GLfloat mouseY)
+    {
+        if (settings.items.empty() || introAnimation.IsPlaying())
+        {
+            return -1;
+        }
+
+        MenuLayout layout = CalculateLayout();
+        for (std::size_t i = 0; i < settings.items.size(); ++i)
+        {
+            GLfloat rowY = layout.itemY + static_cast<GLfloat>(i) * layout.itemSpacing;
+            if (mouseX >= layout.panelX + layout.itemPadding &&
+                mouseX <= layout.panelX + layout.panelWidth - layout.itemPadding &&
+                mouseY >= rowY - 8.0f &&
+                mouseY <= rowY - 8.0f + layout.itemHeight)
+            {
+                return static_cast<int>(i);
+            }
+        }
+
+        return -1;
+    }
+
+    // Obtener el punto medio del texto de una opcion || Get item text midpoint
+    GLfloat GetItemTextMidpointX(std::size_t index)
+    {
+        if (index >= settings.items.size())
+        {
+            return width * 0.5f;
+        }
+
+        MenuLayout layout = CalculateLayout();
+        GLfloat textAreaWidth = layout.panelWidth - 56.0f;
+        GLfloat fittedItemScale = GetFittedScale(settings.items[index], settings.itemScale, textAreaWidth);
+        GLfloat textWidth = MeasureText(settings.items[index], fittedItemScale);
+        return layout.panelX + (layout.panelWidth - textWidth) * 0.5f + textWidth * 0.5f;
+    }
+
+    // Obtener el punto medio del control de volumen dentro de su texto || Get volume control midpoint inside its text
+    GLfloat GetVolumeControlMidpointX(std::size_t index)
+    {
+        if (index >= settings.items.size())
+        {
+            return width * 0.5f;
+        }
+
+        const std::string& item = settings.items[index];
+        std::size_t controlStart = item.find('<');
+        std::size_t controlEnd = item.find('>');
+        if (controlStart == std::string::npos || controlEnd == std::string::npos || controlEnd <= controlStart)
+        {
+            return GetItemTextMidpointX(index);
+        }
+
+        MenuLayout layout = CalculateLayout();
+        GLfloat textAreaWidth = layout.panelWidth - 56.0f;
+        GLfloat fittedItemScale = GetFittedScale(item, settings.itemScale, textAreaWidth);
+        GLfloat textWidth = MeasureText(item, fittedItemScale);
+        GLfloat textX = layout.panelX + (layout.panelWidth - textWidth) * 0.5f;
+        GLfloat controlX = textX + MeasureText(item.substr(0, controlStart), fittedItemScale);
+        GLfloat controlWidth = MeasureText(item.substr(controlStart, controlEnd - controlStart + 1), fittedItemScale);
+        return controlX + controlWidth * 0.5f;
+    }
+
     // Renderizar el menu completo || Render the entire menu
     void Render(int screenWidth, int screenHeight)
     {
@@ -304,33 +369,13 @@ public:
         // Dibujar el fondo || Draw background
         DrawBackground();
 
-        // Calcular ancho del panel segun el texto visible || Calculate panel width based on visible text
-        GLfloat horizontalPadding = 96.0f;
-        GLfloat desiredPanelWidth = settings.panelWidth;
-        desiredPanelWidth = std::max(desiredPanelWidth, MeasureText(settings.title, settings.titleScale) + horizontalPadding);
-        desiredPanelWidth = std::max(desiredPanelWidth, MeasureText(settings.subtitle, settings.subtitleScale) + horizontalPadding);
-        desiredPanelWidth = std::max(desiredPanelWidth, MeasureText(settings.footer, settings.footerScale) + horizontalPadding);
-        for (const std::string& item : settings.items)
-        {
-            desiredPanelWidth = std::max(desiredPanelWidth, MeasureText(item, settings.itemScale) + horizontalPadding);
-        }
-
-        GLfloat panelWidth = std::min(desiredPanelWidth, width - 40.0f);
-        if (panelWidth < 260.0f)
-        {
-            panelWidth = width - 20.0f;
-        }
-
-        // Calcular alto del panel segun las opciones || Calculate panel height based on items
-        GLfloat panelHeight = 220.0f + static_cast<GLfloat>(settings.items.size()) * 46.0f;
-        panelHeight = std::min(panelHeight, height - 40.0f);
-
-        // Calcular coordenadas finales del menu, sin fondo oscuro || Calculate final menu coordinates without dark panel
-        glm::vec2 menuPosition = introAnimation.GetMenuOrigin(width, height, panelWidth, panelHeight);
-        GLfloat panelX = std::max(20.0f, std::min(menuPosition.x, width - panelWidth - 20.0f));
-        GLfloat panelY = std::max(20.0f, std::min(menuPosition.y, height - panelHeight - 20.0f));
+        MenuLayout layout = CalculateLayout();
 
         // Dibujar titulo y subtitulo || Draw title and subtitle
+        GLfloat panelX = layout.panelX;
+        GLfloat panelY = layout.panelY;
+        GLfloat panelWidth = layout.panelWidth;
+        GLfloat panelHeight = layout.panelHeight;
         GLfloat textAreaWidth = panelWidth - 56.0f;
         GLfloat titleScale = GetFittedScale(settings.title, settings.titleScale, textAreaWidth);
         GLfloat subtitleScale = GetFittedScale(settings.subtitle, settings.subtitleScale, textAreaWidth);
@@ -340,14 +385,14 @@ public:
         DrawAnimatedCenteredText(MenuAnimatedElement::Subtitle, 0, settings.subtitle, panelX, panelY + 82.0f, panelWidth, subtitleScale, settings.textColor, panelWidth, panelHeight);
 
         // Configurar posiciones de la lista || Configure list positions
-        GLfloat itemY = panelY + 130.0f;
-        GLfloat itemHeight = 34.0f;
-        GLfloat itemPadding = 28.0f;
+        GLfloat itemY = layout.itemY;
+        GLfloat itemHeight = layout.itemHeight;
+        GLfloat itemPadding = layout.itemPadding;
 
         // Dibujar cada opcion de la lista || Draw each item from the list
         for (std::size_t i = 0; i < settings.items.size(); ++i)
         {
-            GLfloat rowY = itemY + static_cast<GLfloat>(i) * 46.0f;
+            GLfloat rowY = itemY + static_cast<GLfloat>(i) * layout.itemSpacing;
             bool selected = static_cast<int>(i) == selectedIndex;
 
             // Dibujar indicador si la opcion esta seleccionada || Draw indicator if item is selected
@@ -460,7 +505,7 @@ public:
     }
 
     // Calcular el ancho total del texto en pixeles || Calculate total text width in pixels
-    GLfloat MeasureText(const std::string& text, GLfloat scale)
+    GLfloat MeasureText(const std::string& text, GLfloat scale) const
     {
         return static_cast<GLfloat>(text.size()) * 6.0f * scale;
     }
@@ -477,6 +522,18 @@ public:
     }
 
 private:
+    struct MenuLayout
+    {
+        GLfloat panelX = 0.0f;
+        GLfloat panelY = 0.0f;
+        GLfloat panelWidth = 0.0f;
+        GLfloat panelHeight = 0.0f;
+        GLfloat itemY = 0.0f;
+        GLfloat itemHeight = 34.0f;
+        GLfloat itemPadding = 28.0f;
+        GLfloat itemSpacing = 46.0f;
+    };
+
     // Variables miembros privadas || Private member variables
     Shader shader;
     GLuint VAO;
@@ -493,6 +550,35 @@ private:
     bool backgroundLoadAttempted;
     bool backgroundTextureLoaded;
     std::map<char, std::vector<std::string>> font;
+
+    MenuLayout CalculateLayout()
+    {
+        GLfloat horizontalPadding = 96.0f;
+        GLfloat desiredPanelWidth = settings.panelWidth;
+        desiredPanelWidth = std::max(desiredPanelWidth, MeasureText(settings.title, settings.titleScale) + horizontalPadding);
+        desiredPanelWidth = std::max(desiredPanelWidth, MeasureText(settings.subtitle, settings.subtitleScale) + horizontalPadding);
+        desiredPanelWidth = std::max(desiredPanelWidth, MeasureText(settings.footer, settings.footerScale) + horizontalPadding);
+        for (const std::string& item : settings.items)
+        {
+            desiredPanelWidth = std::max(desiredPanelWidth, MeasureText(item, settings.itemScale) + horizontalPadding);
+        }
+
+        MenuLayout layout;
+        layout.panelWidth = std::min(desiredPanelWidth, width - 40.0f);
+        if (layout.panelWidth < 260.0f)
+        {
+            layout.panelWidth = width - 20.0f;
+        }
+
+        layout.panelHeight = 220.0f + static_cast<GLfloat>(settings.items.size()) * layout.itemSpacing;
+        layout.panelHeight = std::min(layout.panelHeight, height - 40.0f);
+
+        glm::vec2 menuPosition = introAnimation.GetMenuOrigin(width, height, layout.panelWidth, layout.panelHeight);
+        layout.panelX = std::max(20.0f, std::min(menuPosition.x, width - layout.panelWidth - 20.0f));
+        layout.panelY = std::max(20.0f, std::min(menuPosition.y, height - layout.panelHeight - 20.0f));
+        layout.itemY = layout.panelY + 130.0f;
+        return layout;
+    }
 
     // Ajustar el indice seleccionado dentro de los limites de la lista || Adjust selected index within items list limits
     void NormalizeSelection()
@@ -800,8 +886,14 @@ private:
         font['8'] = { "01110", "10001", "10001", "01110", "10001", "10001", "01110" };
         font['9'] = { "01110", "10001", "10001", "01111", "00001", "00001", "11110" };
         font['-'] = { "00000", "00000", "00000", "11111", "00000", "00000", "00000" };
+        font['<'] = { "00001", "00010", "00100", "01000", "00100", "00010", "00001" };
         font['>'] = { "10000", "01000", "00100", "00010", "00100", "01000", "10000" };
         font[':'] = { "00000", "00100", "00100", "00000", "00100", "00100", "00000" };
+        font['/'] = { "00001", "00010", "00010", "00100", "01000", "01000", "10000" };
+        font['%'] = { "11001", "11010", "00010", "00100", "01000", "01011", "10011" };
+        font['['] = { "01110", "01000", "01000", "01000", "01000", "01000", "01110" };
+        font[']'] = { "01110", "00010", "00010", "00010", "00010", "00010", "01110" };
+        font['#'] = { "01010", "11111", "01010", "01010", "11111", "01010", "01010" };
     }
 };
 

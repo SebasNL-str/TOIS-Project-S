@@ -17,7 +17,7 @@ namespace MenuContent
 
     const char* SelectFooter = "ESC: MENU   ENTER: SELECT";
     const char* BackFooter = "ESC: BACK   ENTER: SELECT";
-    const char* ToggleFooter = "ENTER: SWITCH   ESC: BACK";
+    const char* VolumeFooter = "LEFT/RIGHT: VOLUME   ESC: BACK";
 
     const char* StartLabel = "START TOUR";
     const char* ContinueLabel = "CONTINUE";
@@ -27,8 +27,10 @@ namespace MenuContent
     const char* ExitLabel = "EXIT";
     const char* BackLabel = "BACK";
 
-    const char* AudioOnLabel = "AUDIO: ON";
-    const char* AudioOffLabel = "AUDIO: OFF";
+    std::string GetVolumeLabel(int volume)
+    {
+        return "VOLUME: <" + std::to_string(volume) + "%>";
+    }
 
     const std::vector<std::string> HelpItems = {
         "W A S D - MOVE",
@@ -77,11 +79,11 @@ void ShowSettingsMenu(MenuRenderer& menu, const SoundManager& sound, bool hitbox
     currentMenuScreen = MenuScreen::Settings;
     menu.SetTitle(MenuContent::SettingsTitle);
     menu.SetSubtitle(MenuContent::SettingsLabel);
-    menu.SetFooter(MenuContent::ToggleFooter);
+    menu.SetFooter(MenuContent::VolumeFooter);
 
     // Mostrar el estado actual de las configuraciones || Show current status of settings
     menu.SetItems({
-        sound.IsAmbientEnabled() ? MenuContent::AudioOnLabel : MenuContent::AudioOffLabel,
+        MenuContent::GetVolumeLabel(sound.GetMasterVolume()),
         MenuContent::BackLabel
         });
 }
