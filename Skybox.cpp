@@ -115,7 +115,12 @@ void Skybox::Draw(Shader& shader, Camera& camera, float width, float height) {
     // Dibujar segun el tipo de proyeccion || Draw based on projection type
     if (type == SkyboxType::Cube) {
         glBindVertexArray(VAO);
+
+        glActiveTexture(GL_TEXTURE0); // 1. Forzar el uso de la unidad de textura 0
         glBindTexture(GL_TEXTURE_CUBE_MAP, cubemapTexture);
+
+        shader.SetInt("skybox", 0); // 2. Vincular el uniform del fragment shader a la unidad 0
+
         glDrawArrays(GL_TRIANGLES, 0, 36);
     }
     else if (type == SkyboxType::Sphere) {
