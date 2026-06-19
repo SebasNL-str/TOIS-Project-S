@@ -91,7 +91,7 @@ int main()
     auto GRGTF = loadedData.GYGLTF;
     auto GRGTF_Collider = loadedData.GYHGLTF;
     auto sphere = loadedData.sphere;
-	
+
 
     // Definir estados booleanos de simulacion original || Define original simulation boolean states
     bool hitboxDebug = false;
@@ -131,7 +131,7 @@ int main()
 
     // Agregar fuentes de luz puntuales y focales a la escena || Add point and spot light sources to the scene
     // scene.AddLight({ LightType::Point, {5.0f, 25.0f, 50.0f}, {0.0f, -1.0f, 0.0f}, {1.0f, 1.0f, 1.0f}, 10.0f, true });
-// Multiplicadores de intensidad HDR para forzar el Bloom
+    // Multiplicadores de intensidad HDR para forzar el Bloom
     float mainLightIntensity = 10.0f;
     float secondaryLightIntensity = 5.0f;
 
@@ -140,32 +140,33 @@ int main()
     glm::vec3 hdrSecondaryColor = baseLightColor * secondaryLightIntensity; // Resultado: {2.75f, 2.25f, 0.75f}
 
     // Agregar fuentes de luz puntuales con intensidades HDR corregidas
-// El color vuelve a ser el original (rango 0.0 a 1.0)
+    // El color vuelve a ser el original (rango 0.0 a 1.0)
 
-    // Ajustamos la INTENSIDAD de la estructura para el HDR (Prueba con 3.0f o 4.0f)
-    float hdrIntensity = 4.0f;
+    // Ajustamos la INTENSIDAD de la estructura para el HDR
+    float hdrIntensityBase = 1.8f;
 
-    scene.AddLight({ LightType::Point, {4.3f, 3.7f, 32.5f}, {0.0f, -1.0f, 0.0f}, baseLightColor, hdrIntensity, true });
-    scene.AddLight({ LightType::Point, {4.777f, 3.644f, 40.849f}, {0.0f, -1.0f, 0.0f}, baseLightColor, hdrIntensity, true });
-    scene.AddLight({ LightType::Point, {13.832f, 3.71f, 36.341f}, {0.0f, -1.0f, 0.0f}, baseLightColor, hdrIntensity, true });
-    scene.AddLight({ LightType::Point, {4.808f, 3.697f, 49.371f}, {0.0f, -1.0f, 0.0f}, baseLightColor, hdrIntensity, true });
-    scene.AddLight({ LightType::Point, {-3.493f, 3.678f, 48.886f}, {0.0f, -1.0f, 0.0f}, baseLightColor, hdrIntensity, true });
-    scene.AddLight({ LightType::Point, {-3.541f, 3.723f, 35.901f}, {0.0f, -1.0f, 0.0f}, baseLightColor, hdrIntensity, true });
-    scene.AddLight({ LightType::Point, {10.843f, 3.689f, 56.531f}, {0.0f, -1.0f, 0.0f}, baseLightColor, hdrIntensity, true });
-    scene.AddLight({ LightType::Point, {5.083f, 3.723f, 63.825f}, {0.0f, -1.0f, 0.0f}, baseLightColor, hdrIntensity, true });
-    scene.AddLight({ LightType::Point, {4.991f, 3.723f, 75.983f}, {0.0f, -1.0f, 0.0f}, baseLightColor, hdrIntensity, true });
-    scene.AddLight({ LightType::Point, {4.79f, 3.726f, 85.209f}, {0.0f, -1.0f, 0.0f}, baseLightColor, hdrIntensity, true });
-    scene.AddLight({ LightType::Point, {-3.427f, 3.676f, 77.844f}, {0.0f, -1.0f, 0.0f}, baseLightColor, hdrIntensity, true });
-    scene.AddLight({ LightType::Point, {-3.427f, 3.676f, 76.235f}, {0.0f, -1.0f, 0.0f}, baseLightColor, hdrIntensity, true });
-    
-    /*
-    scene.AddLight({ LightType::Point, {-1.5f, 2.5f, 62.5f}, {0.0f, -1.0f, 0.0f}, hdrSecondaryColor, 1.0f, false });
-    scene.AddLight({ LightType::Point, {10.5f, 2.5f, 62.5f}, {0.0f, -1.0f, 0.0f}, hdrSecondaryColor, 1.0f, false });
-    scene.AddLight({ LightType::Point, {10.5f, 2.5f, 25.0f}, {0.0f, -1.0f, 0.0f}, hdrSecondaryColor, 1.0f, false });
-    scene.AddLight({ LightType::Point, {-1.5f, 2.5f, 25.0f}, {0.0f, -1.0f, 0.0f}, hdrSecondaryColor, 1.0f, false });*/
+    std::vector<Light> misFarolasBase = {
+    { LightType::Point, {4.3f, 3.7f, 32.5f}, {0.0f, -1.0f, 0.0f}, baseLightColor, hdrIntensityBase, true },
+    { LightType::Point, {4.777f, 3.644f, 40.849f}, {0.0f, -1.0f, 0.0f}, baseLightColor, hdrIntensityBase, true },
+    { LightType::Point, {13.832f, 3.71f, 36.341f}, {0.0f, -1.0f, 0.0f}, baseLightColor, hdrIntensityBase, true },
+    { LightType::Point, {4.808f, 3.697f, 49.371f}, {0.0f, -1.0f, 0.0f}, baseLightColor, hdrIntensityBase, true },
+    { LightType::Point, {-3.493f, 3.678f, 48.886f}, {0.0f, -1.0f, 0.0f}, baseLightColor, hdrIntensityBase, true },
+    { LightType::Point, {-3.541f, 3.723f, 35.901f}, {0.0f, -1.0f, 0.0f}, baseLightColor, hdrIntensityBase, true },
+    { LightType::Point, {10.843f, 3.689f, 56.531f}, {0.0f, -1.0f, 0.0f}, baseLightColor, hdrIntensityBase, true },
+    { LightType::Point, {5.083f, 3.723f, 63.825f}, {0.0f, -1.0f, 0.0f}, baseLightColor, hdrIntensityBase, true },
+    { LightType::Point, {4.991f, 3.723f, 75.983f}, {0.0f, -1.0f, 0.0f}, baseLightColor, hdrIntensityBase, true },
+    { LightType::Point, {4.79f, 3.726f, 85.209f}, {0.0f, -1.0f, 0.0f}, baseLightColor, hdrIntensityBase, true },
+    { LightType::Point, {-3.427f, 3.676f, 77.844f}, {0.0f, -1.0f, 0.0f}, baseLightColor, hdrIntensityBase, true },
+    { LightType::Point, {-3.427f, 3.676f, 76.235f}, {0.0f, -1.0f, 0.0f}, baseLightColor, hdrIntensityBase, true }
+    };
+
+    // 3. Las registramos en la escena por primera vez
+    for (const auto& farola : misFarolasBase) {
+        scene.AddLight(farola);
+    }
 
     // Directional light
-    scene.AddLight({ LightType::Directional, {0.0f, 0.0f, 0.0f}, {-0.2f, -1.0f, -0.3f}, {0.45f, 0.55f, 0.70f}, 1.2f, false });
+    scene.AddLight({ LightType::Directional, {0.0f, 0.0f, 0.0f}, {-0.2f, -1.0f, -0.3f}, {0.45f, 0.55f, 0.70f}, 0.0f, false });
 
     std::size_t flashlightLightIndex = scene.GetLightCount();
     scene.AddLight({ LightType::Spot, camera.GetPosition(), camera.GetFront(), {1.0f, 0.92f, 0.75f}, 0.0f, false });
@@ -183,17 +184,18 @@ int main()
     PlayLoadingFadeOut(window, barVAO, barVBO, loadingShader);
     menu.StartIntroAnimation();
 
-
+    // Variable para el control del tiempo interno acumulado de la simulación
+    float accumulatedGameTime = 0.0f;
 
     // =========================================================================
-        // INICIO DEL BUCLE DE RENDERIZADO PRINCIPAL CORREGIDO
-        // =========================================================================
+    // INICIO DEL BUCLE DE RENDERIZADO PRINCIPAL CORREGIDO
+    // =========================================================================
     while (!glfwWindowShouldClose(window))
     {
         // Actualizar información de rendimiento en la ventana (FPS)
         updateFPS(window);
 
-        // Inicializar variables para dimensiones del buffer de la ventana
+        // Inicializar variables para dimensions del buffer de la ventana
         int framebufferWidth = SCREEN_WIDTH;
         int framebufferHeight = SCREEN_HEIGHT;
 
@@ -216,6 +218,11 @@ int main()
         float currentFrame = static_cast<float>(glfwGetTime());
         deltaTime = currentFrame - lastFrame;
         lastFrame = currentFrame;
+
+        // CONTROL DEL TIEMPO ATMOSFÉRICO: Solo avanza si el menú está cerrado y el juego ya arrancó
+        if (!menuOpen && gameStarted) {
+            accumulatedGameTime += deltaTime;
+        }
 
         // Lógica de transición / Fade del tour
         if (tourFadeActive) {
@@ -325,6 +332,22 @@ int main()
             shader.SetFloat("spotCutOff", glm::cos(glm::radians(12.5f)));
             shader.SetFloat("spotOuterCutOff", glm::cos(glm::radians(17.5f)));
 
+            // Uso del tiempo acumulado (si se pausa por 'menuOpen', congelará las ondas de luz)
+            float time = accumulatedGameTime;
+
+            for (size_t i = 0; i < misFarolasBase.size(); i++) {
+                Light luzModificada = misFarolasBase[i];
+
+                float tiempoDesfasado = time + (i * 24.51f);
+
+                float oscilacionLenta = sin(tiempoDesfasado * 1.2f) * cos(tiempoDesfasado * 0.5f);
+                float caidaTension = (sin(tiempoDesfasado * 0.4f) > 0.80f) ? 0.3f : 1.0f;
+
+                luzModificada.intensity = hdrIntensityBase * (1.0f + oscilacionLenta * 0.10f) * caidaTension;
+
+                scene.SetLight(i, luzModificada);
+            }
+
             // 3. Dibujar todos los elementos opacos y emisivos del escenario
             scene.Draw(shader, emissiveShader, camera, globalProjection);
             glBindVertexArray(0);
@@ -394,8 +417,6 @@ int main()
     // =========================================================================
     // FIN DEL BUCLE DE RENDERIZADO PRINCIPAL
     // =========================================================================
-
-
 
     sound.StopAmbient();
     glfwTerminate();
