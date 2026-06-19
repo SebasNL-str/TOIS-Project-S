@@ -41,17 +41,24 @@ namespace MenuContent
         BackLabel
     };
 
-    const std::vector<std::string> CreditItems = {
-        "TOIS PROJECT S",
-        "DEVELOPED BY",
+    const std::vector<std::string> CreditDevelopers = {
         "BRENES RUEDA MICHAEL ISMAEL",
         "NARVAEZ LOPEZ JOSE SEBASTIAN",
-        "ORTIZ RODRIGEZ BRADLY ALEXANDER",
-        "TECHNOLOGIES USED",
-        "OPENGL GLFW ASSIMP GLEW",
-        "GLM SOIL2 WINMM WIN32",
-        BackLabel
+        "ORTIZ RODRIGUEZ BRADLY ALEXANDER"
     };
+
+    const std::vector<std::string> CreditTechnologies = {
+        "OPENGL",
+        "GLFW",
+        "ASSIMP",
+        "GLEW",
+        "GLM",
+        "SOIL2",
+        "WINMM",
+        "WIN32"
+    };
+
+    const char* CreditUniversity = "NATIONAL UNIVERSITY OF ENGINEERING";
 }
 
 namespace
@@ -69,6 +76,13 @@ namespace
         settings.panelColor = gameStarted
             ? glm::vec4(0.03f, 0.03f, 0.04f, 0.62f)
             : glm::vec4(0.08f, 0.08f, 0.10f, 0.0f);
+        settings.panelWidth = 430.0f;
+        settings.titleScale = 4.0f;
+        settings.subtitleScale = 2.0f;
+        settings.itemScale = 2.5f;
+        settings.footerScale = 1.5f;
+        settings.onlyBackSelectable = false;
+        settings.useCreditsLayout = false;
     }
 }
 
@@ -128,7 +142,19 @@ void ShowCreditsMenu(MenuRenderer& menu)
     menu.SetTitle(MenuContent::CreditsTitle);
     menu.SetSubtitle("TEAM");
     menu.SetFooter(MenuContent::BackFooter);
-    menu.SetItems(MenuContent::CreditItems);
+
+    // Activar el layout de dos columnas: desarrolladores a la izquierda, tecnologias a la derecha || Enable two-column layout: developers on the left, technologies on the right
+    menu.EditSettings().useCreditsLayout = true;
+    menu.EditSettings().itemScale = 1.6f;
+    menu.EditSettings().footerScale = 1.35f;
+    menu.EditSettings().onlyBackSelectable = true;
+    menu.SetCreditsContent(
+        "DEVELOPED BY", MenuContent::CreditDevelopers,
+        "TECHNOLOGIES", MenuContent::CreditTechnologies,
+        MenuContent::CreditUniversity);
+
+    // El unico item de la lista es BACK, que se dibuja como texto simple en el layout de creditos || The only list item is BACK, drawn as plain text in the credits layout
+    menu.SetItems({ MenuContent::BackLabel });
     menu.SetSelectedIndex(0);
 }
 

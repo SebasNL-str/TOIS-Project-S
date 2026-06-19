@@ -1,4 +1,3 @@
-
 #ifndef MENU_H
 #define MENU_H
 
@@ -55,8 +54,17 @@ struct MenuSettings
     GLfloat itemScale = 2.5f;
     GLfloat footerScale = 1.5f;
     bool visible = false;
+    bool onlyBackSelectable = false;
     bool useBackgroundImage = true;
     std::string backgroundImagePath = "Resources/MenuBackground/menu2.png";
+
+    // Layout especial de dos columnas para la pantalla de creditos || Special two-column layout for the credits screen
+    bool useCreditsLayout = false;
+    std::string creditsLeftHeader = "DEVELOPED BY";
+    std::vector<std::string> creditsLeftLines;
+    std::string creditsRightHeader = "TECHNOLOGIES";
+    std::vector<std::string> creditsRightLines;
+    std::string creditsBottomText;
 };
 
 class MenuRenderer
@@ -185,7 +193,7 @@ public:
     }
 
 
-        // Obtener configuracion para editar || Get configuration to edit
+    // Obtener configuracion para editar || Get configuration to edit
     MenuSettings& EditSettings()
     {
         return settings;
@@ -236,6 +244,21 @@ public:
         settings.backgroundImagePath.clear();
         settings.useBackgroundImage = false;
         ResetBackgroundTexture();
+    }
+
+    // Configurar el contenido de la pantalla de creditos (dos columnas + texto inferior) || Configure credits screen content (two columns + bottom text)
+    void SetCreditsContent(
+        const std::string& leftHeader,
+        const std::vector<std::string>& leftLines,
+        const std::string& rightHeader,
+        const std::vector<std::string>& rightLines,
+        const std::string& bottomText)
+    {
+        settings.creditsLeftHeader = leftHeader;
+        settings.creditsLeftLines = leftLines;
+        settings.creditsRightHeader = rightHeader;
+        settings.creditsRightLines = rightLines;
+        settings.creditsBottomText = bottomText;
     }
 
     // Cambiar lista de opciones || Change items list
@@ -289,7 +312,14 @@ public:
         }
 
         int itemCount = static_cast<int>(settings.items.size());
-        selectedIndex = (selectedIndex + direction + itemCount) % itemCount;
+        for (int step = 0; step < itemCount; ++step)
+        {
+            selectedIndex = (selectedIndex + direction + itemCount) % itemCount;
+            if (IsSelectableItem(selectedIndex))
+            {
+                return;
+            }
+        }
     }
 
     // Obtener item bajo coordenadas del mouse || Get item under mouse coordinates
@@ -301,8 +331,38 @@ public:
         }
 
         MenuLayout layout = CalculateLayout();
+
+        if (settings.useCreditsLayout)
+        {
+            // En creditos solo existe el item BACK, dibujado como boton centrado mas grande || In credits only the BACK item exists, drawn as a bigger centered button
+            if (!IsSelectableItem(0))
+            {
+                return -1;
+            }
+
+            GLfloat textAreaWidth = layout.panelWidth - 56.0f;
+            GLfloat backScale = GetFittedScale(settings.items[0], layout.creditsBackScale, textAreaWidth);
+            GLfloat backTextWidth = MeasureText(settings.items[0], backScale);
+            GLfloat boxPadding = 36.0f;
+            GLfloat boxWidth = backTextWidth + boxPadding * 2.0f;
+            GLfloat boxX = layout.panelX + (layout.panelWidth - boxWidth) * 0.5f;
+
+            if (mouseX >= boxX && mouseX <= boxX + boxWidth &&
+                mouseY >= layout.itemY - 9.0f && mouseY <= layout.itemY - 9.0f + layout.creditsBackBoxHeight)
+            {
+                return 0;
+            }
+
+            return -1;
+        }
+
         for (std::size_t i = 0; i < settings.items.size(); ++i)
         {
+            if (!IsSelectableItem(i))
+            {
+                continue;
+            }
+
             GLfloat rowY = layout.itemY + static_cast<GLfloat>(i) * layout.itemSpacing;
             if (mouseX >= layout.panelX + layout.itemPadding &&
                 mouseX <= layout.panelX + layout.panelWidth - layout.itemPadding &&
@@ -397,21 +457,30 @@ public:
         GLfloat itemHeight = layout.itemHeight;
         GLfloat itemPadding = layout.itemPadding;
 
-        // Dibujar cada opcion de la lista || Draw each item from the list
-        for (std::size_t i = 0; i < settings.items.size(); ++i)
+        if (settings.useCreditsLayout)
         {
-            GLfloat rowY = itemY + static_cast<GLfloat>(i) * layout.itemSpacing;
-            bool selected = static_cast<int>(i) == selectedIndex;
-
-            // Dibujar indicador si la opcion esta seleccionada || Draw indicator if item is selected
-            if (selected && !introAnimation.IsPlaying())
+            // Dibujar layout especial de dos columnas para creditos || Draw special two-column credits layout
+            DrawCreditsContent(layout, panelX, panelWidth, textAreaWidth);
+        }
+        else
+        {
+            // Dibujar cada opcion de la lista || Draw each item from the list
+            for (std::size_t i = 0; i < settings.items.size(); ++i)
             {
-                DrawRect(panelX + itemPadding, rowY - 8.0f, panelWidth - itemPadding * 2.0f, itemHeight, settings.selectedColor);
-            }
+                GLfloat rowY = itemY + static_cast<GLfloat>(i) * layout.itemSpacing;
+                bool selectable = IsSelectableItem(i);
+                bool selected = selectable && static_cast<int>(i) == selectedIndex;
 
-            // Dibujar texto de la opcion || Draw item text
-            GLfloat fittedItemScale = GetFittedScale(settings.items[i], settings.itemScale, textAreaWidth);
-            DrawAnimatedCenteredText(MenuAnimatedElement::Item, i, settings.items[i], panelX, rowY, panelWidth, fittedItemScale, selected && !introAnimation.IsPlaying() ? settings.selectedTextColor : settings.textColor, panelWidth, panelHeight);
+                // Dibujar indicador si la opcion esta seleccionada || Draw indicator if item is selected
+                if (selected && !introAnimation.IsPlaying())
+                {
+                    DrawRect(panelX + itemPadding, rowY - 8.0f, panelWidth - itemPadding * 2.0f, itemHeight, settings.selectedColor);
+                }
+
+                // Dibujar texto de la opcion || Draw item text
+                GLfloat fittedItemScale = GetFittedScale(settings.items[i], settings.itemScale, textAreaWidth);
+                DrawAnimatedCenteredText(MenuAnimatedElement::Item, i, settings.items[i], panelX, rowY, panelWidth, fittedItemScale, selected && !introAnimation.IsPlaying() ? settings.selectedTextColor : settings.textColor, panelWidth, panelHeight);
+            }
         }
 
         // Dibujar pie de pagina || Draw footer
@@ -420,6 +489,7 @@ public:
         // Restaurar estado grafico || Restore graphic state
         End();
     }
+
 
     void RenderOverlay(int screenWidth, int screenHeight, const glm::vec4& color)
     {
@@ -547,6 +617,13 @@ private:
         GLfloat itemHeight = 34.0f;
         GLfloat itemPadding = 28.0f;
         GLfloat itemSpacing = 46.0f;
+
+        // Campos exclusivos del layout de creditos || Credits-layout-only fields
+        GLfloat creditsColumnsY = 0.0f;
+        GLfloat creditsLineHeight = 24.0f;
+        GLfloat creditsBottomTextY = 0.0f;
+        GLfloat creditsBackScale = 0.0f;
+        GLfloat creditsBackBoxHeight = 0.0f;
     };
 
     // Variables miembros privadas || Private member variables
@@ -573,9 +650,22 @@ private:
         desiredPanelWidth = std::max(desiredPanelWidth, MeasureText(settings.title, settings.titleScale) + horizontalPadding);
         desiredPanelWidth = std::max(desiredPanelWidth, MeasureText(settings.subtitle, settings.subtitleScale) + horizontalPadding);
         desiredPanelWidth = std::max(desiredPanelWidth, MeasureText(settings.footer, settings.footerScale) + horizontalPadding);
-        for (const std::string& item : settings.items)
+
+        if (settings.useCreditsLayout)
         {
-            desiredPanelWidth = std::max(desiredPanelWidth, MeasureText(item, settings.itemScale) + horizontalPadding);
+            // Columna izquierda + columna derecha + separacion entre ambas || Left column + right column + gap between them
+            GLfloat columnGap = 130.0f;
+            GLfloat leftColumnWidth = MeasureWidestLine(settings.creditsLeftHeader, settings.creditsLeftLines, settings.itemScale);
+            GLfloat rightColumnWidth = MeasureWidestLine(settings.creditsRightHeader, settings.creditsRightLines, settings.itemScale);
+            desiredPanelWidth = std::max(desiredPanelWidth, leftColumnWidth + rightColumnWidth + columnGap + horizontalPadding);
+            desiredPanelWidth = std::max(desiredPanelWidth, MeasureText(settings.creditsBottomText, settings.itemScale) + horizontalPadding);
+        }
+        else
+        {
+            for (const std::string& item : settings.items)
+            {
+                desiredPanelWidth = std::max(desiredPanelWidth, MeasureText(item, settings.itemScale) + horizontalPadding);
+            }
         }
 
         MenuLayout layout;
@@ -585,19 +675,81 @@ private:
             layout.panelWidth = width - 20.0f;
         }
 
-        layout.panelHeight = 220.0f + static_cast<GLfloat>(settings.items.size()) * layout.itemSpacing;
-        layout.panelHeight = std::min(layout.panelHeight, height - 40.0f);
+        if (settings.useCreditsLayout)
+        {
+            // Altura de fila para el texto de creditos (cabecera y nombres) || Row height for credits text (header and names)
+            layout.creditsLineHeight = 7.0f * settings.itemScale + 11.0f;
+
+            std::size_t leftRows = settings.creditsLeftLines.size();
+            std::size_t rightRows = settings.creditsRightLines.size();
+            std::size_t columnRows = std::max(leftRows, rightRows);
+
+            // 1 fila de cabecera + 1 fila de espacio + filas de nombres || 1 header row + 1 spacer row + name rows
+            GLfloat columnsBlockHeight = (2.0f + static_cast<GLfloat>(columnRows)) * layout.creditsLineHeight;
+            GLfloat bottomTextGap = 26.0f;
+
+            // BACK: escala mas grande que el resto de creditos + mas espacio antes de el || BACK: bigger scale than the rest of the credits + more space before it
+            layout.creditsBackScale = settings.itemScale * 1.35f;
+            layout.creditsBackBoxHeight = 7.0f * layout.creditsBackScale + 18.0f;
+            GLfloat backGap = 64.0f;
+            GLfloat bottomPadding = 90.0f;
+
+            layout.panelHeight = 130.0f + columnsBlockHeight + bottomTextGap + layout.creditsLineHeight + backGap + layout.creditsBackBoxHeight + bottomPadding;
+            layout.panelHeight = std::min(layout.panelHeight, height - 40.0f);
+
+            layout.creditsColumnsY = 130.0f + layout.creditsLineHeight;
+            layout.creditsBottomTextY = layout.creditsColumnsY + columnsBlockHeight + bottomTextGap;
+            layout.itemY = layout.creditsBottomTextY + layout.creditsLineHeight + backGap + 9.0f;
+        }
+        else
+        {
+            layout.panelHeight = 220.0f + static_cast<GLfloat>(settings.items.size()) * layout.itemSpacing;
+            layout.panelHeight = std::min(layout.panelHeight, height - 40.0f);
+        }
 
         glm::vec2 menuPosition(
             width * settings.panelCenterXPercent - layout.panelWidth * 0.5f,
             height * settings.panelCenterYPercent - layout.panelHeight * 0.5f);
         layout.panelX = std::max(20.0f, std::min(menuPosition.x, width - layout.panelWidth - 20.0f));
         layout.panelY = std::max(20.0f, std::min(menuPosition.y, height - layout.panelHeight - 20.0f));
-        layout.itemY = layout.panelY + 130.0f;
+
+        if (settings.useCreditsLayout)
+        {
+            // Re-anclar las posiciones verticales relativas a la Y final del panel || Re-anchor vertical positions to the final panel Y
+            layout.creditsColumnsY += layout.panelY;
+            layout.creditsBottomTextY += layout.panelY;
+            layout.itemY += layout.panelY;
+        }
+        else
+        {
+            layout.itemY = layout.panelY + 130.0f;
+        }
+
         return layout;
     }
 
+    // Medir el ancho de la linea mas larga entre una cabecera y una lista de lineas || Measure the widest line between a header and a list of lines
+    GLfloat MeasureWidestLine(const std::string& header, const std::vector<std::string>& lines, GLfloat scale)
+    {
+        GLfloat widest = MeasureText(header, scale);
+        for (const std::string& line : lines)
+        {
+            widest = std::max(widest, MeasureText(line, scale));
+        }
+        return widest;
+    }
+
     // Ajustar el indice seleccionado dentro de los limites de la lista || Adjust selected index within items list limits
+    bool IsSelectableItem(std::size_t index) const
+    {
+        if (index >= settings.items.size() || settings.items[index].empty())
+        {
+            return false;
+        }
+
+        return !settings.onlyBackSelectable || settings.items[index] == "BACK";
+    }
+
     void NormalizeSelection()
     {
         if (settings.items.empty())
@@ -614,6 +766,19 @@ private:
         else if (selectedIndex > lastIndex)
         {
             selectedIndex = lastIndex;
+        }
+
+        if (!IsSelectableItem(static_cast<std::size_t>(selectedIndex)))
+        {
+            int itemCount = static_cast<int>(settings.items.size());
+            for (int step = 0; step < itemCount; ++step)
+            {
+                selectedIndex = (selectedIndex + 1) % itemCount;
+                if (IsSelectableItem(static_cast<std::size_t>(selectedIndex)))
+                {
+                    return;
+                }
+            }
         }
     }
 
@@ -659,6 +824,66 @@ private:
         }
 
         DrawText(text, transform.position.x - animatedTextWidth * 0.5f, transform.position.y, transform.scale, animatedColor);
+    }
+
+    // Dibujar el contenido de la pantalla de creditos: dos columnas + texto inferior + BACK como boton con hover || Draw credits screen content: two columns + bottom text + BACK as a hoverable button
+    void DrawCreditsContent(const MenuLayout& layout, GLfloat panelX, GLfloat panelWidth, GLfloat textAreaWidth)
+    {
+        // Mismo columnGap usado en CalculateLayout para que el ancho del panel siempre alcance || Same columnGap used in CalculateLayout so the panel width always fits
+        GLfloat columnGap = 130.0f;
+        GLfloat leftX = panelX + 22.0f;
+        GLfloat columnsAreaWidth = panelWidth - 44.0f - columnGap;
+        GLfloat rightX = leftX + columnsAreaWidth * 0.5f + columnGap;
+        GLfloat lineHeight = layout.creditsLineHeight;
+
+        // Cabeceras de columna, resaltadas con el color del titulo || Column headers, highlighted with the title color
+        GLfloat rowY = layout.creditsColumnsY;
+        DrawText(settings.creditsLeftHeader, leftX, rowY, settings.itemScale, settings.titleColor);
+        DrawText(settings.creditsRightHeader, rightX, rowY, settings.itemScale, settings.titleColor);
+
+        // Saltar una fila de espacio entre la cabecera y los nombres || Skip one spacer row between header and names
+        rowY += lineHeight * 2.0f;
+
+        std::size_t maxRows = std::max(settings.creditsLeftLines.size(), settings.creditsRightLines.size());
+        for (std::size_t row = 0; row < maxRows; ++row)
+        {
+            if (row < settings.creditsLeftLines.size())
+            {
+                DrawText(settings.creditsLeftLines[row], leftX, rowY, settings.itemScale, settings.textColor);
+            }
+            if (row < settings.creditsRightLines.size())
+            {
+                DrawText(settings.creditsRightLines[row], rightX, rowY, settings.itemScale, settings.textColor);
+            }
+            rowY += lineHeight;
+        }
+
+        // Texto inferior centrado, ej. el nombre de la universidad || Centered bottom text, e.g. the university name
+        if (!settings.creditsBottomText.empty())
+        {
+            GLfloat bottomScale = GetFittedScale(settings.creditsBottomText, settings.itemScale, textAreaWidth);
+            DrawCenteredText(settings.creditsBottomText, panelX, layout.creditsBottomTextY, panelWidth, bottomScale, settings.footerColor);
+        }
+
+        // BACK como boton: texto centrado mas grande, con caja de hover/seleccion detras || BACK as a button: bigger centered text, with a hover/selection box behind it
+        if (!settings.items.empty())
+        {
+            bool selectable = IsSelectableItem(0);
+            bool selected = selectable && selectedIndex == 0;
+            GLfloat backScale = GetFittedScale(settings.items[0], layout.creditsBackScale, textAreaWidth);
+
+            if (selected && !introAnimation.IsPlaying())
+            {
+                GLfloat backTextWidth = MeasureText(settings.items[0], backScale);
+                GLfloat boxPadding = 36.0f;
+                GLfloat boxWidth = backTextWidth + boxPadding * 2.0f;
+                GLfloat boxX = panelX + (panelWidth - boxWidth) * 0.5f;
+                DrawRect(boxX, layout.itemY - 9.0f, boxWidth, layout.creditsBackBoxHeight, settings.selectedColor);
+            }
+
+            glm::vec4 backColor = (selected && !introAnimation.IsPlaying()) ? settings.selectedTextColor : settings.textColor;
+            DrawAnimatedCenteredText(MenuAnimatedElement::Item, 0, settings.items[0], panelX, layout.itemY, panelWidth, backScale, backColor, panelWidth, layout.panelHeight);
+        }
     }
 
     // Dibujar el fondo del menu (imagen o color solido) || Draw menu background (image or solid color)
