@@ -146,18 +146,18 @@ int main()
     float hdrIntensityBase = 1.8f;
 
     std::vector<Light> misFarolasBase = {
-    { LightType::Point, {4.3f, 3.7f, 32.5f}, {0.0f, -1.0f, 0.0f}, baseLightColor, hdrIntensityBase, true },
-    { LightType::Point, {4.777f, 3.644f, 40.849f}, {0.0f, -1.0f, 0.0f}, baseLightColor, hdrIntensityBase, true },
-    { LightType::Point, {13.832f, 3.71f, 36.341f}, {0.0f, -1.0f, 0.0f}, baseLightColor, hdrIntensityBase, true },
-    { LightType::Point, {4.808f, 3.697f, 49.371f}, {0.0f, -1.0f, 0.0f}, baseLightColor, hdrIntensityBase, true },
-    { LightType::Point, {-3.493f, 3.678f, 48.886f}, {0.0f, -1.0f, 0.0f}, baseLightColor, hdrIntensityBase, true },
-    { LightType::Point, {-3.541f, 3.723f, 35.901f}, {0.0f, -1.0f, 0.0f}, baseLightColor, hdrIntensityBase, true },
-    { LightType::Point, {10.843f, 3.689f, 56.531f}, {0.0f, -1.0f, 0.0f}, baseLightColor, hdrIntensityBase, true },
-    { LightType::Point, {5.083f, 3.723f, 63.825f}, {0.0f, -1.0f, 0.0f}, baseLightColor, hdrIntensityBase, true },
-    { LightType::Point, {4.991f, 3.723f, 75.983f}, {0.0f, -1.0f, 0.0f}, baseLightColor, hdrIntensityBase, true },
-    { LightType::Point, {4.79f, 3.726f, 85.209f}, {0.0f, -1.0f, 0.0f}, baseLightColor, hdrIntensityBase, true },
-    { LightType::Point, {-3.427f, 3.676f, 77.844f}, {0.0f, -1.0f, 0.0f}, baseLightColor, hdrIntensityBase, true },
-    { LightType::Point, {-3.427f, 3.676f, 76.235f}, {0.0f, -1.0f, 0.0f}, baseLightColor, hdrIntensityBase, true }
+    { LightType::Point, {4.3f, 3.7f, 32.5f}, {0.0f, -1.0f, 0.0f}, baseLightColor, hdrIntensityBase, false },
+    { LightType::Point, {4.777f, 3.644f, 40.849f}, {0.0f, -1.0f, 0.0f}, baseLightColor, hdrIntensityBase, false },
+    { LightType::Point, {13.832f, 3.71f, 36.341f}, {0.0f, -1.0f, 0.0f}, baseLightColor, hdrIntensityBase, false },
+    { LightType::Point, {4.808f, 3.697f, 49.371f}, {0.0f, -1.0f, 0.0f}, baseLightColor, hdrIntensityBase, false },
+    { LightType::Point, {-3.493f, 3.678f, 48.886f}, {0.0f, -1.0f, 0.0f}, baseLightColor, hdrIntensityBase, false },
+    { LightType::Point, {-3.541f, 3.723f, 35.901f}, {0.0f, -1.0f, 0.0f}, baseLightColor, hdrIntensityBase, false },
+    { LightType::Point, {10.843f, 3.689f, 56.531f}, {0.0f, -1.0f, 0.0f}, baseLightColor, hdrIntensityBase, false },
+    { LightType::Point, {5.083f, 3.723f, 63.825f}, {0.0f, -1.0f, 0.0f}, baseLightColor, hdrIntensityBase, false },
+    { LightType::Point, {4.991f, 3.723f, 75.983f}, {0.0f, -1.0f, 0.0f}, baseLightColor, hdrIntensityBase, false },
+    { LightType::Point, {4.79f, 3.726f, 85.209f}, {0.0f, -1.0f, 0.0f}, baseLightColor, hdrIntensityBase, false },
+    { LightType::Point, {-3.427f, 3.676f, 77.844f}, {0.0f, -1.0f, 0.0f}, baseLightColor, hdrIntensityBase, false },
+    { LightType::Point, {-3.427f, 3.676f, 76.235f}, {0.0f, -1.0f, 0.0f}, baseLightColor, hdrIntensityBase, false }
     };
 
     // 3. Las registramos en la escena por primera vez
