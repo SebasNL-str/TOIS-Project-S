@@ -143,7 +143,7 @@ int main()
     // El color vuelve a ser el original (rango 0.0 a 1.0)
 
     // Ajustamos la INTENSIDAD de la estructura para el HDR
-    float hdrIntensityBase = 2.0f;
+    float hdrIntensityBase = 1.2f;
 
     std::vector<Light> misFarolasBase = {
     { LightType::Point, {4.3f, 3.7f, 32.5f}, {0.0f, -1.0f, 0.0f}, baseLightColor, hdrIntensityBase, false },
