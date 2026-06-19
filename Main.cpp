@@ -105,7 +105,7 @@ int main()
     MenuSettings menuSettings;
     menuSettings.visible = true;
     menuSettings.useBackgroundImage = true;
-    menuSettings.backgroundImagePath = "Resources/MenuBackground/menu.jpg";
+    menuSettings.backgroundImagePath = "Resources/MenuBackground/menu2.png";
     menu.Configure(menuSettings);
 
     ShowMainMenu(menu);

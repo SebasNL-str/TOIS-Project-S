@@ -56,7 +56,7 @@ struct MenuSettings
     GLfloat footerScale = 1.5f;
     bool visible = false;
     bool useBackgroundImage = true;
-    std::string backgroundImagePath = "Resources/MenuBackground/menu.jpg";
+    std::string backgroundImagePath = "Resources/MenuBackground/menu2.png";
 };
 
 class MenuRenderer
