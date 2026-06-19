@@ -91,7 +91,7 @@ void processGameplayInput(GLFWwindow* window, bool& flashlightEnabled, bool& blo
     }
     fWasPressed = fPressed;
 
-    // Dentro de tu función de procesamiento de teclado:
+    
     /*
     static bool bKeyPressed = false;
     if (glfwGetKey(window, GLFW_KEY_B) == GLFW_PRESS) {

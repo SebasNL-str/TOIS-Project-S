@@ -20,7 +20,7 @@
 #include "LoadingHelper.h"
 #include "Bloom.h"
 
-// Dimensiones predeterminadas   de la pantalla || Default screen dimensions
+// Dimensiones predeterminadas de la pantalla || Default screen dimensions
 const int SCREEN_WIDTH = 1000;
 const int SCREEN_HEIGHT = 800;
 
@@ -41,12 +41,14 @@ float lastY = SCREEN_HEIGHT * 0.5f;
 // Estado de la pantalla activa del menu || Active menu screen state
 MenuScreen currentMenuScreen = MenuScreen::Main;
 
+// Configuración para la transición del tour || Configuration for the tour transition
 struct TourFadeSettings
 {
     float durationSeconds = 1.0f;
     glm::vec4 color = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
 };
 
+// Instancias globales para los efectos de transición y post-procesado || Global instances for transition and post-processing effects
 TourFadeSettings tourFadeSettings;
 bool tourFadeActive = false;
 float tourFadeOpacity = 0.0f;
@@ -56,7 +58,9 @@ bool bloomEnabled = true;
 
 int main()
 {
+    // Variables para almacenar las dimensiones reales del buffer || Variables to store the real framebuffer dimensions
     int widthR, heightR;
+
     // Inicializar ventana principal del sistema || Initialize main system window
     GLFWwindow* window = InitWindow(widthR, heightR, "T.O.I.S: Project S");
     if (!window) return -1;
@@ -66,19 +70,21 @@ int main()
     glfwSetCursorPosCallback(window, mouse_callback);
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
 
+    // Validar el estado e inicializacion de las funciones de OpenGL || Validate the state and initialization of OpenGL functions
     if (!InitOpenGLState()) return -1;
 
     // Inicializar el shader y buffers de la interfaz de carga || Initialize loading interface shader and buffers
     Shader loadingShader("Resources/Shaders/loading.vert", "Resources/Shaders/loading.frag");
     GLuint barVAO, barVBO;
     InitProgressBar(barVAO, barVBO);
-    bloom.Init(widthR, heightR);
 
+    // Inicializar el manejador de Bloom con las dimensiones recibidas || Initialize the Bloom handler with the received dimensions
+    bloom.Init(widthR, heightR);
 
     // Cargar asincronamente los recursos mediante la maquina de estados || Asynchronously load resources using the state machine
     GAssets loadedData = ExecuteInteractiveLoading(window, loadingShader, barVAO, barVBO);
 
-    // Desreferenciar objetos cargados para compatibilidad de sintaxis || Dereference loaded objects for syntax compatibility
+    // Extraer referencias de los recursos cargados asincronamente || Extract references from the asynchronously loaded assets
     SoundManager& sound = *loadedData.sound;
     Shader& shader = *loadedData.shader;
     Shader& skyboxShader = *loadedData.skyboxShader;
@@ -88,10 +94,10 @@ int main()
     Skybox& sphereSkybox = *loadedData.sphereSkybox;
     Shader& emissiveShader = *loadedData.emissiveShader;
 
+    // Asignar mallas de geometrias particulares cargadas || Assign specific loaded geometry meshes
     auto GRGTF = loadedData.GYGLTF;
     auto GRGTF_Collider = loadedData.GYHGLTF;
     auto sphere = loadedData.sphere;
-
 
     // Definir estados booleanos de simulacion original || Define original simulation boolean states
     bool hitboxDebug = false;
@@ -108,6 +114,7 @@ int main()
     menuSettings.backgroundImagePath = "Resources/MenuBackground/menu2.png";
     menu.Configure(menuSettings);
 
+    // Desplegar menu y forzar captura del cursor segun corresponda || Display menu and force cursor capture as corresponding
     ShowMainMenu(menu);
     SetMenuOpen(window, menu, sound, true);
 
@@ -129,22 +136,19 @@ int main()
         scene.SetLightSphere(nullptr);
     }
 
-    // Agregar fuentes de luz puntuales y focales a la escena || Add point and spot light sources to the scene
-    // scene.AddLight({ LightType::Point, {5.0f, 25.0f, 50.0f}, {0.0f, -1.0f, 0.0f}, {1.0f, 1.0f, 1.0f}, 10.0f, true });
-    // Multiplicadores de intensidad HDR para forzar el Bloom
+    // Configurar multiplicadores de intensidad HDR para forzar el Bloom || Configure HDR intensity multipliers to force Bloom
     float mainLightIntensity = 10.0f;
     float secondaryLightIntensity = 5.0f;
 
+    // Definicion de vectores de color base e intensidades calculadas || Definition of base color vectors and calculated intensities
     glm::vec3 baseLightColor(0.55f, 0.45f, 0.15f);
-    glm::vec3 hdrMainColor = baseLightColor * mainLightIntensity;         // Resultado: {5.5f, 4.5f, 1.5f}
-    glm::vec3 hdrSecondaryColor = baseLightColor * secondaryLightIntensity; // Resultado: {2.75f, 2.25f, 0.75f}
+    glm::vec3 hdrMainColor = baseLightColor * mainLightIntensity;
+    glm::vec3 hdrSecondaryColor = baseLightColor * secondaryLightIntensity;
 
-    // Agregar fuentes de luz puntuales con intensidades HDR corregidas
-    // El color vuelve a ser el original (rango 0.0 a 1.0)
-
-    // Ajustamos la INTENSIDAD de la estructura para el HDR
+    // Establecer la intensidad base para las farolas de la escena || Set the base intensity for the scene lampposts
     float hdrIntensityBase = 1.2f;
 
+    // Vector de almacenamiento de fuentes de luz fijas distribuidas || Storage vector for distributed fixed light sources
     std::vector<Light> misFarolasBase = {
     { LightType::Point, {4.3f, 3.7f, 32.5f}, {0.0f, -1.0f, 0.0f}, baseLightColor, hdrIntensityBase, false },
     { LightType::Point, {4.777f, 3.644f, 40.849f}, {0.0f, -1.0f, 0.0f}, baseLightColor, hdrIntensityBase, false },
@@ -160,19 +164,20 @@ int main()
     { LightType::Point, {-3.427f, 3.676f, 76.235f}, {0.0f, -1.0f, 0.0f}, baseLightColor, hdrIntensityBase, false }
     };
 
-    // 3. Las registramos en la escena por primera vez
+    // Registrar los componentes de iluminacion en la escena || Register illumination components into the scene
     for (const auto& farola : misFarolasBase) {
         scene.AddLight(farola);
     }
 
-    // Directional light
+    // Agregar luz direccional global ambiental || Add global environmental directional light
     scene.AddLight({ LightType::Directional, {0.0f, 0.0f, 0.0f}, {-0.2f, -1.0f, -0.3f}, {0.45f, 0.55f, 0.70f}, 0.0f, false });
 
+    // Obtener indice y agregar el reflector dinamico de la linterna || Get index and add the dynamic flashlight spotlight
     std::size_t flashlightLightIndex = scene.GetLightCount();
     scene.AddLight({ LightType::Spot, camera.GetPosition(), camera.GetFront(), {1.0f, 0.92f, 0.75f}, 0.0f, false });
 
+    // Cargar el mapa base u objeto principal del entorno 3D || Load the base map or main object of the 3D environment
     scene.AddObject(GRGTF, { {5.0f, 0.0f, 45.0f}, {0.0f, 0.0f, 0.0f}, {0.8f, 0.8f, 0.8f} });
-
 
     // Construir estructuras nativas de colision por cada objeto || Build native collision structures for each object
     for (auto& obj : scene.GetObjects()) {
@@ -184,26 +189,25 @@ int main()
     PlayLoadingFadeOut(window, barVAO, barVBO, loadingShader);
     menu.StartIntroAnimation();
 
-    // Variable para el control del tiempo interno acumulado de la simulación
+    // Variable para el control del tiempo interno acumulado de la simulación || Variable for control of internal accumulated simulation time
     float accumulatedGameTime = 0.0f;
 
-    // =========================================================================
-    // INICIO DEL BUCLE DE RENDERIZADO PRINCIPAL CORREGIDO
-    // =========================================================================
+    // Bucle de renderizado principal || Main rendering loop
     while (!glfwWindowShouldClose(window))
     {
-        // Actualizar información de rendimiento en la ventana (FPS)
+        // Actualizar información de rendimiento en la ventana (FPS) || Update performance info on window (FPS)
         updateFPS(window);
 
-        // Inicializar variables para dimensions del buffer de la ventana
+        // Inicializar variables para dimensiones del buffer de la ventana || Initialize variables for window buffer dimensions
         int framebufferWidth = SCREEN_WIDTH;
         int framebufferHeight = SCREEN_HEIGHT;
 
-        // Obtener dimensiones reales del buffer de la ventana (Crucial para pantallas Retina/High-DPI)
+        // Obtener dimensiones reales del buffer de la ventana || Get actual window buffer dimensions
         glfwGetFramebufferSize(window, &framebufferWidth, &framebufferHeight);
         if (framebufferWidth <= 0) framebufferWidth = SCREEN_WIDTH;
         if (framebufferHeight <= 0) framebufferHeight = SCREEN_HEIGHT;
 
+        // Calcular la matriz de proyeccion perspectiva global || Calculate the global perspective projection matrix
         glm::mat4 globalProjection = glm::perspective(
             glm::radians(camera.GetZoom()),
             (float)framebufferWidth / (float)framebufferHeight,
@@ -211,20 +215,20 @@ int main()
             100.0f
         );
 
-        // Establecer de forma dinámica las dimensiones del área de dibujo de OpenGL
+        // Establecer de forma dinámica las dimensiones del área de dibujo de OpenGL || Dynamically set OpenGL drawing area dimensions
         glViewport(0, 0, framebufferWidth, framebufferHeight);
 
-        // Calcular el tiempo transcurrido entre fotogramas (Delta Time)
+        // Calcular el tiempo transcurrido entre fotogramas (Delta Time) || Calculate elapsed time between frames (Delta Time)
         float currentFrame = static_cast<float>(glfwGetTime());
         deltaTime = currentFrame - lastFrame;
         lastFrame = currentFrame;
 
-        // CONTROL DEL TIEMPO ATMOSFÉRICO: Solo avanza si el menú está cerrado y el juego ya arrancó
+        // CONTROL DEL TIEMPO ATMOSFÉRICO: Solo avanza si el menú está cerrado y el juego ya arrancó || WEATHER TIME CONTROL: Only advances if menu is closed and game has started
         if (!menuOpen && gameStarted) {
             accumulatedGameTime += deltaTime;
         }
 
-        // Lógica de transición / Fade del tour
+        // Lógica de transición / Fade del tour || Tour transition / Fade logic
         if (tourFadeActive) {
             if (tourFadeSettings.durationSeconds <= 0.0f) {
                 tourFadeOpacity = 0.0f;
@@ -239,19 +243,19 @@ int main()
             }
         }
 
-        // Capturar eventos del sistema (Teclado, Mouse, Ventana)
+        // Capturar eventos del sistema (Teclado, Mouse, Ventana) || Capture system events (Keyboard, Mouse, Window)
         glfwPollEvents();
 
-        // Procesar entradas del menú principal o de pausa
+        // Procesar entradas del menú principal o de pausa || Process main or pause menu inputs
         processMenuInput(window, menu, sound, hitboxDebug);
 
-        // Procesar lógica y controles del gameplay únicamente si el menú está cerrado y el juego inició
+        // Procesar lógica y controles del gameplay únicamente si el menú está cerrado y el juego inició || Process gameplay logic and controls only if menu is closed and game started
         if (!menuOpen && gameStarted) {
             glm::vec3 oldPos = camera.GetPosition();
             processGameplayInput(window, flashlightEnabled, bloomEnabled);
             glm::vec3 newPos = camera.GetPosition();
 
-            // Actualizar coordenadas, dirección y estado de la linterna acoplada a la cámara
+            // Actualizar coordenadas, dirección y estado de la linterna acoplada a la cámara || Update coordinates, direction, and state of the flashlight attached to camera
             scene.SetLight(flashlightLightIndex, {
                 LightType::Spot,
                 newPos + camera.GetFront() * 0.25f,
@@ -260,7 +264,7 @@ int main()
                 flashlightEnabled ? 18.0f : 0.0f
                 });
 
-            // Evaluar colisiones por malla del sistema nativo
+            // Evaluar colisiones por malla del sistema nativo || Evaluate collisions per mesh from the native system
             if (hitboxC) {
                 CameraCollider camCollider{ newPos, 0.8f };
                 bool blocked = false;
@@ -273,32 +277,30 @@ int main()
                         break;
                     }
                 }
-                if (blocked) camera.ForcePosition(oldPos); // Revertir movimiento si colisiona
+                if (blocked) camera.ForcePosition(oldPos);
             }
         }
 
-        // =========================================================================
-        // PASO 1: Redirigir el Renderizado de la Escena al HDR FBO de Bloom
-        // =========================================================================
+        // Redirigir el Renderizado de la Escena al HDR FBO de Bloom || Redirect scene rendering to Bloom FBO
         glBindFramebuffer(GL_FRAMEBUFFER, bloom.hdrFBO);
 
-        // Forzar encendido del Test de Profundidad antes de limpiar el buffer
+        // Forzar encendido del Test de Profundidad antes de limpiar el buffer || Force Depth Test enablement before clearing buffer
         glEnable(GL_DEPTH_TEST);
         glDepthFunc(GL_LESS);
-        glDisable(GL_BLEND); // Empezamos sin transparencias parasitarias del frame anterior
+        glDisable(GL_BLEND);
 
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        // Decidir qué renderizar estructuralmente dentro del FBO sin romper el ciclo
+        // Decidir qué renderizar estructuralmente dentro del FBO || Decide what to structurally render inside the FBO
         if (!gameStarted) {
             // --- ESTADOS PARA INTERFAZ 2D DEL MENÚ INICIAL ---
             glEnable(GL_BLEND);
             glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-            glDisable(GL_DEPTH_TEST); // Evita que la UI se oculte detrás del z-buffer inexistente
+            glDisable(GL_DEPTH_TEST);
 
             menu.Render(framebufferWidth, framebufferHeight);
 
-            // Limpieza inmediata de estados tras renderizar el menú
+            // Limpieza inmediata de estados tras renderizar el menú || Immediate cleanup of states after rendering the menu
             glDisable(GL_BLEND);
             glEnable(GL_DEPTH_TEST);
             glBindVertexArray(0);
@@ -308,10 +310,8 @@ int main()
             glEnable(GL_DEPTH_TEST);
             glDisable(GL_BLEND);
 
-            // -----------------------------------------------------------------
-            // 1. Dibujar el cielo de fondo (Skybox) con test inclusivo LEQUAL
-            // -----------------------------------------------------------------
-            glDepthFunc(GL_LEQUAL); // Permite dibujar fragmentos en el infinito profundo (Z = 1.0)
+            // Dibujar el cielo de fondo (Skybox) con test inclusivo LEQUAL || Draw background skybox with inclusive test LEQUAL
+            glDepthFunc(GL_LEQUAL);
 
             if (activeType == SkyboxType::Cube) {
                 skyboxShader.Use();
@@ -322,24 +322,24 @@ int main()
                 sphereSkybox.Draw(skyboxSphereShader, camera, (float)framebufferWidth, (float)framebufferHeight);
             }
 
-            // Regresar inmediatamente a GL_LESS antes de pintar los objetos del escenario
+            // Regresar inmediatamente a GL_LESS antes de pintar los objetos || Return immediately to GL_LESS before painting objects
             glDepthFunc(GL_LESS);
 
-            // -----------------------------------------------------------------
-            // 2. Activar el shader de los objetos e iluminar los límites de la linterna (Spotlight)
-            // -----------------------------------------------------------------
+            // Activar el shader de los objetos e iluminar los límites de la linterna || Activate object shader and setup flashlight limits
             shader.Use();
             shader.SetFloat("spotCutOff", glm::cos(glm::radians(12.5f)));
             shader.SetFloat("spotOuterCutOff", glm::cos(glm::radians(17.5f)));
 
-            // Uso del tiempo acumulado (si se pausa por 'menuOpen', congelará las ondas de luz)
+            // Uso del tiempo acumulado para congelar o avanzar animaciones || Use accumulated time to freeze or advance animations
             float time = accumulatedGameTime;
 
+            // Calcular oscilacion y caida de tension dinamica por cada farola || Calculate dynamic oscillation and voltage drop for each lamppost
             for (size_t i = 0; i < misFarolasBase.size(); i++) {
                 Light luzModificada = misFarolasBase[i];
 
                 float tiempoDesfasado = time + (i * 24.51f);
 
+                // Ecuaciones de onda senoidal/cosenoidal para simular fallos electricos || Sine/cosine wave equations to simulate electrical failures
                 float oscilacionLenta = sin(tiempoDesfasado * 1.2f) * cos(tiempoDesfasado * 0.5f);
                 float caidaTension = (sin(tiempoDesfasado * 0.4f) > 0.80f) ? 0.3f : 1.0f;
 
@@ -348,11 +348,11 @@ int main()
                 scene.SetLight(i, luzModificada);
             }
 
-            // 3. Dibujar todos los elementos opacos y emisivos del escenario
+            // Dibujar todos los elementos opacos y emisivos del escenario || Draw all opaque and emissive elements of the scene
             scene.Draw(shader, emissiveShader, camera, globalProjection);
             glBindVertexArray(0);
 
-            // 4. Renderizar líneas de depuración de colisiones (Hitboxes) en caso de estar activo
+            // Renderizar líneas de depuración de colisiones (Hitboxes) || Render collision debug lines (Hitboxes)
             if (hitboxDebug) {
                 hitboxShader.Use();
                 glm::mat4 projection = glm::perspective(glm::radians(camera.GetZoom()),
@@ -368,7 +368,7 @@ int main()
                 glBindVertexArray(0);
             }
 
-            // 5. Aplicar la capa/overlay de la transición del Tour si corresponde
+            // Aplicar la capa/overlay de la transición del Tour si corresponde || Apply Tour transition overlay if applicable
             if (tourFadeOpacity > 0.0f) {
                 glEnable(GL_BLEND);
                 glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -383,7 +383,7 @@ int main()
                 glBindVertexArray(0);
             }
 
-            // 6. Si el juego está activo pero abriste el menú de pausa, lo superponemos en el FBO
+            // Si el juego está activo pero abriste el menú de pausa, lo superponemos || If game is active but pause menu is opened, overlay it
             if (menuOpen) {
                 glEnable(GL_BLEND);
                 glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -397,27 +397,23 @@ int main()
             }
         }
 
-        // =========================================================================
-        // PASO 2: Desvincular el HDR FBO y Ejecutar el Post-Procesado de Bloom
-        // =========================================================================
-        glBindFramebuffer(GL_FRAMEBUFFER, 0); // Regresamos al buffer por defecto del monitor
+        // Desvincular el HDR FBO y regresar al buffer por defecto || Unbind HDR FBO and return to default buffer
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-        // AISLAMIENTO TOTAL: Forzar la limpieza de estados antes del dibujo del Quad de Bloom
-        glUseProgram(0);           // Matar cualquier shader activo residual (ej: fuentes/UI del menú)
-        glBindVertexArray(0);      // Asegurar que no haya VAO enlazado incorrectamente
-        glDisable(GL_BLEND);       // El quad de Bloom debe sobreescribir la pantalla de manera 100% opaca
-        glDisable(GL_DEPTH_TEST);  // Apagar profundidad porque el Quad de post-procesado es 2D puro
+        // AISLAMIENTO TOTAL: Forzar la limpieza de estados antes del dibujo de Bloom || TOTAL ISOLATION: Force state cleanup before Bloom drawing
+        glUseProgram(0);
+        glBindVertexArray(0);
+        glDisable(GL_BLEND);
+        glDisable(GL_DEPTH_TEST);
 
-        // Procesar texturas: Extraer brillos -> Aplicar Blur -> Combinar aditivamente en pantalla
+        // Procesar texturas: Extraer brillos -> Aplicar Blur -> Combinar aditivamente || Process textures: Extract brightness -> Apply Blur -> Additively blend
         bloom.Render(bloomEnabled);
 
-        // Intercambiar los buffers de dibujo para mostrar el fotograma final estable en el monitor
+        // Intercambiar los buffers de dibujo para mostrar el fotograma final || Swap drawing buffers to show final frame
         glfwSwapBuffers(window);
     }
-    // =========================================================================
-    // FIN DEL BUCLE DE RENDERIZADO PRINCIPAL
-    // =========================================================================
 
+    // Liberacion de recursos multimedia y terminacion del contexto GLFW || Release multimedia resources and GLFW context termination
     sound.StopAmbient();
     glfwTerminate();
     return 0;
