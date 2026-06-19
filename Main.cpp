@@ -91,17 +91,7 @@ int main()
     auto GRGTF = loadedData.GYGLTF;
     auto GRGTF_Collider = loadedData.GYHGLTF;
     auto sphere = loadedData.sphere;
-	auto Lantern = loadedData.Lantern;
-    auto Lantern2 = std::make_shared<Model>(*Lantern);
-    auto Lantern3 = std::make_shared<Model>(*Lantern);
-    auto Lantern4 = std::make_shared<Model>(*Lantern);
-    auto Lantern5 = std::make_shared<Model>(*Lantern);
-    auto Lantern6 = std::make_shared<Model>(*Lantern);
-    auto Lantern7 = std::make_shared<Model>(*Lantern);
-    auto Lantern8 = std::make_shared<Model>(*Lantern);
-
-
-
+	
 
     // Definir estados booleanos de simulacion original || Define original simulation boolean states
     bool hitboxDebug = false;
@@ -181,48 +171,6 @@ int main()
     scene.AddLight({ LightType::Spot, camera.GetPosition(), camera.GetFront(), {1.0f, 0.92f, 0.75f}, 0.0f, false });
 
     scene.AddObject(GRGTF, { {5.0f, 0.0f, 45.0f}, {0.0f, 0.0f, 0.0f}, {0.8f, 0.8f, 0.8f} });
-    scene.AddObject(Lantern, { {0.0f, 0.0f, 35.0f}, {0.0f, 0.0f, 0.0f}, {1.0f, 1.0f, 1.0f} });
-
-    Transform& lanternTransform = scene.GetTransform(Lantern);
-    lanternTransform.uniformScale(0.0015f);
-
-    scene.AddObject(Lantern2, { {10.0f, 0.0f, 40.0f}, {0.0f, 0.0f, 0.0f}, {1.0f, 1.0f, 1.0f} });
-
-    Transform& lanternTransform2 = scene.GetTransform(Lantern2);
-    lanternTransform2.uniformScale(0.0015f);
-
-    scene.AddObject(Lantern3, { {10.0f, 0.0f, 50.0f}, {0.0f, 0.0f, 0.0f}, {1.0f, 1.0f, 1.0f} });
-
-    Transform& lanternTransform3 = scene.GetTransform(Lantern3);
-    lanternTransform3.uniformScale(0.0015f);
-
-
-    scene.AddObject(Lantern4, { {-3.5f, 0.0f, 59.0f}, {0.0f, 0.0f, 0.0f}, {1.0f, 1.0f, 1.0f} });
-
-    Transform& lanternTransform4 = scene.GetTransform(Lantern4);
-    lanternTransform4.uniformScale(0.0015f);
-
-    scene.AddObject(Lantern5, { {-1.5f, 0.0f, 62.5f}, {0.0f, 0.0f, 0.0f}, {1.0f, 1.0f, 1.0f} });
-
-    Transform& lanternTransform5 = scene.GetTransform(Lantern5);
-    lanternTransform5.uniformScale(0.0015f);
-
-    scene.AddObject(Lantern6, { {10.5f, 0.0f, 62.5f}, {0.0f, 0.0f, 0.0f}, {1.0f, 1.0f, 1.0f} });
-
-    Transform& lanternTransform6 = scene.GetTransform(Lantern6);
-    lanternTransform6.uniformScale(0.0015f);
-
-    scene.AddObject(Lantern7, { {10.5f, 0.0f, 25.0f}, {0.0f, 0.0f, 0.0f}, {1.0f, 1.0f, 1.0f} });
-
-    Transform& lanternTransform7 = scene.GetTransform(Lantern7);
-    lanternTransform7.uniformScale(0.0015f);
-
-    scene.AddObject(Lantern8, { {-1.5f, 0.0f, 25.0f}, {0.0f, 0.0f, 0.0f}, {1.0f, 1.0f, 1.0f} });
-
-    Transform& lanternTransform8 = scene.GetTransform(Lantern8);
-    lanternTransform8.uniformScale(0.0015f);
-
-
 
 
     // Construir estructuras nativas de colision por cada objeto || Build native collision structures for each object
