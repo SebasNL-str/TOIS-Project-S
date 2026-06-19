@@ -169,6 +169,12 @@
     <None Include="Resources\Shaders\default.vert">
       <Filter>Archivos de recursos\Shaders</Filter>
     </None>
+    <None Include="Resources\Shaders\fog.frag">
+      <Filter>Archivos de recursos\Shaders</Filter>
+    </None>
+    <None Include="Resources\Shaders\fog.vert">
+      <Filter>Archivos de recursos\Shaders</Filter>
+    </None>
     <None Include="Resources\Shaders\skybox.frag">
       <Filter>Archivos de recursos\Shaders</Filter>
     </None>

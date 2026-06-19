@@ -1,4 +1,4 @@
-#include "Scene.h"
+ï»¿#include "Scene.h"
 #include "Transform.h"
 
 #include <gtc/matrix_transform.hpp>
@@ -75,7 +75,7 @@ void Scene::Draw(Shader& shader, Shader& emissiveShader, Camera& camera, const g
     glDepthMask(GL_TRUE);
 
     glm::mat4 view = camera.GetViewMatrix();
-    // ELIMINAMOS el cálculo local de 'projection' porque ahora viene como parámetro
+    // ELIMINAMOS el cÃ¡lculo local de 'projection' porque ahora viene como parÃ¡metro
 
     shader.Use();
     shader.SetMat4("view", view);
@@ -84,7 +84,7 @@ void Scene::Draw(Shader& shader, Shader& emissiveShader, Camera& camera, const g
     shader.SetVec3("viewPos", camera.GetPosition());
     fogSettings.Apply(shader);
 
-    // Limitar la cantidad máxima de luces procesadas
+    // Limitar la cantidad mÃ¡xima de luces procesadas
     int lightCount = (int)lights.size();
     if (lightCount > MAX_LIGHTS)
         lightCount = MAX_LIGHTS;
@@ -104,7 +104,7 @@ void Scene::Draw(Shader& shader, Shader& emissiveShader, Camera& camera, const g
         shader.SetFloat(base + "intensity", light.intensity);
     }
 
-    // Calcular matrices de transformación y dibujar objetos del mapa
+    // Calcular matrices de transformaciÃ³n y dibujar objetos del mapa
     for (auto& obj : objects)
     {
         glm::mat4 modelMat = glm::mat4(1.0f);
@@ -123,18 +123,18 @@ void Scene::Draw(Shader& shader, Shader& emissiveShader, Camera& camera, const g
     glBindVertexArray(0); // Desvincular VAO residual de los objetos opacos
 
     // -------------------------------------------------------------------------
-    // RENDERIZADO EMISIVO (BOMBILLAS DE LUZ) CON PROTECCIÓN DE PROFUNDIDAD
+    // RENDERIZADO EMISIVO (BOMBILLAS DE LUZ) CON PROTECCIÃ“N DE PROFUNDIDAD
     // -------------------------------------------------------------------------
     emissiveShader.Use();
     emissiveShader.SetMat4("view", view);
     emissiveShader.SetMat4("projection", projection);
 
-    // Forzar que el test de profundidad esté activo al dibujar las bombillas
-    // para que la geometría opaca del mapa (paredes) las tape correctamente.
+    // Forzar que el test de profundidad estÃ© activo al dibujar las bombillas
+    // para que la geometrÃ­a opaca del mapa (paredes) las tape correctamente.
     glEnable(GL_DEPTH_TEST);
     glDepthMask(GL_FALSE); // No necesitamos escribir profundidad de las bombillas, solo leerla
 
-    // Dibujar representaciones gráficas de los focos de luz
+    // Dibujar representaciones grÃ¡ficas de los focos de luz
     for (const Light& light : lights)
     {
         if (lightSphere && light.drawSphere)
