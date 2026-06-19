@@ -155,10 +155,18 @@ int main()
     // Ajustamos la INTENSIDAD de la estructura para el HDR (Prueba con 3.0f o 4.0f)
     float hdrIntensity = 4.0f;
 
-    scene.AddLight({ LightType::Point, {0.0f, 2.5f, 35.0f}, {0.0f, -1.0f, 0.0f}, baseLightColor, hdrIntensity, true });
-    scene.AddLight({ LightType::Point, {10.0f, 2.5f, 40.0f}, {0.0f, -1.0f, 0.0f}, baseLightColor, hdrIntensity, true });
-    scene.AddLight({ LightType::Point, {10.0f, 2.5f, 50.0f}, {0.0f, -1.0f, 0.0f}, baseLightColor, hdrIntensity, true });
-    scene.AddLight({ LightType::Point, {-3.5f, 2.5f, 59.5f}, {0.0f, -1.0f, 0.0f}, baseLightColor, hdrIntensity, true });
+    scene.AddLight({ LightType::Point, {4.3f, 3.7f, 32.5f}, {0.0f, -1.0f, 0.0f}, baseLightColor, hdrIntensity, true });
+    scene.AddLight({ LightType::Point, {4.777f, 3.644f, 40.849f}, {0.0f, -1.0f, 0.0f}, baseLightColor, hdrIntensity, true });
+    scene.AddLight({ LightType::Point, {13.832f, 3.71f, 36.341f}, {0.0f, -1.0f, 0.0f}, baseLightColor, hdrIntensity, true });
+    scene.AddLight({ LightType::Point, {4.808f, 3.697f, 49.371f}, {0.0f, -1.0f, 0.0f}, baseLightColor, hdrIntensity, true });
+    scene.AddLight({ LightType::Point, {-3.493f, 3.678f, 48.886f}, {0.0f, -1.0f, 0.0f}, baseLightColor, hdrIntensity, true });
+    scene.AddLight({ LightType::Point, {-3.541f, 3.723f, 35.901f}, {0.0f, -1.0f, 0.0f}, baseLightColor, hdrIntensity, true });
+    scene.AddLight({ LightType::Point, {10.843f, 3.689f, 56.531f}, {0.0f, -1.0f, 0.0f}, baseLightColor, hdrIntensity, true });
+    scene.AddLight({ LightType::Point, {5.083f, 3.723f, 63.825f}, {0.0f, -1.0f, 0.0f}, baseLightColor, hdrIntensity, true });
+    scene.AddLight({ LightType::Point, {4.991f, 3.723f, 75.983f}, {0.0f, -1.0f, 0.0f}, baseLightColor, hdrIntensity, true });
+    scene.AddLight({ LightType::Point, {4.79f, 3.726f, 85.209f}, {0.0f, -1.0f, 0.0f}, baseLightColor, hdrIntensity, true });
+    scene.AddLight({ LightType::Point, {-3.427f, 3.676f, 77.844f}, {0.0f, -1.0f, 0.0f}, baseLightColor, hdrIntensity, true });
+    scene.AddLight({ LightType::Point, {-3.427f, 3.676f, 76.235f}, {0.0f, -1.0f, 0.0f}, baseLightColor, hdrIntensity, true });
     
     /*
     scene.AddLight({ LightType::Point, {-1.5f, 2.5f, 62.5f}, {0.0f, -1.0f, 0.0f}, hdrSecondaryColor, 1.0f, false });
