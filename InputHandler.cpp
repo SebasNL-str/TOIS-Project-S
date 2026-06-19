@@ -92,6 +92,7 @@ void processGameplayInput(GLFWwindow* window, bool& flashlightEnabled, bool& blo
     fWasPressed = fPressed;
 
     // Dentro de tu función de procesamiento de teclado:
+    /*
     static bool bKeyPressed = false;
     if (glfwGetKey(window, GLFW_KEY_B) == GLFW_PRESS) {
         if (!bKeyPressed) {
@@ -102,7 +103,7 @@ void processGameplayInput(GLFWwindow* window, bool& flashlightEnabled, bool& blo
     }
     else if (glfwGetKey(window, GLFW_KEY_B) == GLFW_RELEASE) {
         bKeyPressed = false;
-    }
+    }*/
 }
 
 // Procesar la navegacion del usuario dentro de la interfaz || Process user navigation inside the interface
