@@ -137,7 +137,6 @@ void main()
             float intensity = clamp((theta - spotOuterCutOff) / epsilon, 0.0, 1.0);
 
             float dist = length(lights[i].position - FragPos);
-            // Caída cuadrática real para que la linterna no sobreexponga todo el mapa a la distancia
             float distanceAttenuation = 1.0 / (1.0 + 0.09 * dist + 0.032 * dist * dist);
             
             attenuation = intensity * distanceAttenuation;
@@ -150,17 +149,21 @@ void main()
         vec3 H = normalize(L + V);
         float spec = pow(max(dot(N, H), 0.0), 32.0);
 
-        // Calcular color final de la luz combinando su color e intensidad HDR || Calculate final light color using HDR color and intensity
+        // Calcular color final de la luz combinando su color e intensidad HDR
         vec3 lightColor = lights[i].color * lights[i].intensity;
 
-        vec3 diffuse = diff * lightColor * texColor.rgb;
-        vec3 specular = spec * lightColor * 0.25;
+        // Factor de albedo físico (absorción de energía para materiales opacos normales)
+        float materialAlbedo = 0.20; 
 
-        // Acumular iluminacion atenuada || Accumulate attenuated lighting
+        // Aplicamos el albedo para balancear la reflectividad de la superficie
+        vec3 diffuse = diff * lightColor * texColor.rgb * materialAlbedo;
+        vec3 specular = spec * lightColor * 0.25 * materialAlbedo;
+
+        // Acumular iluminacion atenuada
         result += (diffuse + specular) * attenuation;
     }
     
-    // Aplicar las capas de niebla sobre el rango dinámico HDR puro
+    // Aplicar las capas de niebla sobre el rango dinámico HDR calibrado
     result = ApplyFog(result);
 
     // Asignar color final reteniendo la información HDR para el pipeline de post-procesado
