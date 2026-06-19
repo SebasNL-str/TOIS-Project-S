@@ -20,7 +20,7 @@
 #include "LoadingHelper.h"
 #include "Bloom.h"
 
-// Dimensiones predeterminadas de la pantalla || Default screen dimensions
+// Dimensiones predeterminadas   de la pantalla || Default screen dimensions
 const int SCREEN_WIDTH = 1000;
 const int SCREEN_HEIGHT = 800;
 

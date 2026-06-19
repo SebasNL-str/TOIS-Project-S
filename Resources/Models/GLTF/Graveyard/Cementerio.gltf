@@ -3,9 +3,6 @@
 		"generator":"Khronos glTF Blender I/O v5.1.20",
 		"version":"2.0"
 	},
-	"extensionsUsed":[
-		"KHR_materials_transmission"
-	],
 	"scene":0,
 	"scenes":[
 		{
@@ -17,7 +14,7 @@
 				528,
 				548,
 				558,
-				578
+				576
 			]
 		}
 	],
@@ -2872,25 +2869,17 @@
 			"name":"Farola_Farola_Tex_0.011"
 		},
 		{
-			"mesh":550,
-			"name":"Farola_Lampara_uv_0"
-		},
-		{
-			"mesh":551,
-			"name":"Farola_Light_Farola_0"
-		},
-		{
 			"name":"Object_9"
 		},
 		{
 			"children":[
-				572
+				570
 			],
 			"name":"Object_8"
 		},
 		{
 			"children":[
-				573
+				571
 			],
 			"name":"Point"
 		},
@@ -2907,27 +2896,25 @@
 				567,
 				568,
 				569,
-				570,
-				571,
-				574
+				572
 			],
 			"name":"Farola"
 		},
 		{
 			"children":[
-				575
+				573
 			],
 			"name":"RootNode"
 		},
 		{
 			"children":[
-				576
+				574
 			],
 			"name":"Farola.fbx"
 		},
 		{
 			"children":[
-				577
+				575
 			],
 			"name":"Farola.001"
 		}
@@ -3365,53 +3352,6 @@
 					"index":47
 				},
 				"roughnessFactor":0.8817263841629028
-			}
-		},
-		{
-			"alphaMode":"BLEND",
-			"doubleSided":true,
-			"extensions":{
-				"KHR_materials_transmission":{
-					"transmissionFactor":1
-				}
-			},
-			"name":"Lampara_uv",
-			"normalTexture":{
-				"index":48
-			},
-			"pbrMetallicRoughness":{
-				"baseColorFactor":[
-					1,
-					1,
-					1,
-					0.25
-				],
-				"baseColorTexture":{
-					"index":49
-				},
-				"metallicFactor":0,
-				"metallicRoughnessTexture":{
-					"index":50
-				}
-			}
-		},
-		{
-			"doubleSided":true,
-			"emissiveFactor":[
-				1,
-				1,
-				1
-			],
-			"name":"Light_Farola",
-			"pbrMetallicRoughness":{
-				"baseColorFactor":[
-					0.800000011920929,
-					0.800000011920929,
-					0.800000011920929,
-					1
-				],
-				"metallicFactor":0,
-				"roughnessFactor":0.8040408492088318
 			}
 		}
 	],
@@ -11142,34 +11082,6 @@
 					"material":46
 				}
 			]
-		},
-		{
-			"name":"Farola_Lampara_uv_0",
-			"primitives":[
-				{
-					"attributes":{
-						"POSITION":1951,
-						"NORMAL":1952,
-						"TEXCOORD_0":1953
-					},
-					"indices":1954,
-					"material":47
-				}
-			]
-		},
-		{
-			"name":"Farola_Light_Farola_0",
-			"primitives":[
-				{
-					"attributes":{
-						"POSITION":1955,
-						"NORMAL":1956,
-						"TEXCOORD_0":1957
-					},
-					"indices":1958,
-					"material":48
-				}
-			]
 		}
 	],
 	"textures":[
@@ -11352,18 +11264,6 @@
 		{
 			"sampler":0,
 			"source":43
-		},
-		{
-			"sampler":0,
-			"source":44
-		},
-		{
-			"sampler":0,
-			"source":45
-		},
-		{
-			"sampler":0,
-			"source":46
 		},
 		{
 			"sampler":0,
@@ -28821,74 +28721,6 @@
 			"componentType":5123,
 			"count":8904,
 			"type":"SCALAR"
-		},
-		{
-			"bufferView":1951,
-			"componentType":5126,
-			"count":34,
-			"max":[
-				0.7753458619117737,
-				4.293580055236816,
-				3.8209049701690674
-			],
-			"min":[
-				0.5230589509010315,
-				4.0421013832092285,
-				3.568618059158325
-			],
-			"type":"VEC3"
-		},
-		{
-			"bufferView":1952,
-			"componentType":5126,
-			"count":34,
-			"type":"VEC3"
-		},
-		{
-			"bufferView":1953,
-			"componentType":5126,
-			"count":34,
-			"type":"VEC2"
-		},
-		{
-			"bufferView":1954,
-			"componentType":5123,
-			"count":48,
-			"type":"SCALAR"
-		},
-		{
-			"bufferView":1955,
-			"componentType":5126,
-			"count":240,
-			"max":[
-				0.6968672275543213,
-				4.219058513641357,
-				3.7250192165374756
-			],
-			"min":[
-				0.5992745161056519,
-				4.116443634033203,
-				3.6224043369293213
-			],
-			"type":"VEC3"
-		},
-		{
-			"bufferView":1956,
-			"componentType":5126,
-			"count":240,
-			"type":"VEC3"
-		},
-		{
-			"bufferView":1957,
-			"componentType":5126,
-			"count":240,
-			"type":"VEC2"
-		},
-		{
-			"bufferView":1958,
-			"componentType":5123,
-			"count":240,
-			"type":"SCALAR"
 		}
 	],
 	"bufferViews":[
@@ -40597,54 +40429,6 @@
 			"byteLength":17808,
 			"byteOffset":26260808,
 			"target":34963
-		},
-		{
-			"buffer":0,
-			"byteLength":408,
-			"byteOffset":26278616,
-			"target":34962
-		},
-		{
-			"buffer":0,
-			"byteLength":408,
-			"byteOffset":26279024,
-			"target":34962
-		},
-		{
-			"buffer":0,
-			"byteLength":272,
-			"byteOffset":26279432,
-			"target":34962
-		},
-		{
-			"buffer":0,
-			"byteLength":96,
-			"byteOffset":26279704,
-			"target":34963
-		},
-		{
-			"buffer":0,
-			"byteLength":2880,
-			"byteOffset":26279800,
-			"target":34962
-		},
-		{
-			"buffer":0,
-			"byteLength":2880,
-			"byteOffset":26282680,
-			"target":34962
-		},
-		{
-			"buffer":0,
-			"byteLength":1920,
-			"byteOffset":26285560,
-			"target":34962
-		},
-		{
-			"buffer":0,
-			"byteLength":480,
-			"byteOffset":26287480,
-			"target":34963
 		}
 	],
 	"samplers":[
@@ -40655,7 +40439,7 @@
 	],
 	"buffers":[
 		{
-			"byteLength":26287960,
+			"byteLength":26278616,
 			"uri":"cementerio.bin"
 		}
 	]
