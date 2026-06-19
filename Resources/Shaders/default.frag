@@ -136,10 +136,11 @@ void main()
             float epsilon = max(spotCutOff - spotOuterCutOff, 0.0001);
             float intensity = clamp((theta - spotOuterCutOff) / epsilon, 0.0, 1.0);
 
-            attenuation = intensity;
-
             float dist = length(lights[i].position - FragPos);
-            attenuation *= 1.0 / (1.0 + 0.09 * dist);
+            // Caída cuadrática real para que la linterna no sobreexponga todo el mapa a la distancia
+            float distanceAttenuation = 1.0 / (1.0 + 0.09 * dist + 0.032 * dist * dist);
+            
+            attenuation = intensity * distanceAttenuation;
         }
 
         // Calcular componente difusa || Calculate diffuse component
