@@ -1,4 +1,4 @@
-#include <iostream>
+ï»¿#include <iostream>
 #include <fstream>
 #include <memory>
 #include <vector>
@@ -234,7 +234,7 @@ int main()
         // =========================================================================
     while (!glfwWindowShouldClose(window))
     {
-        // Actualizar información de rendimiento en la ventana (FPS)
+        // Actualizar informaciÃ³n de rendimiento en la ventana (FPS)
         updateFPS(window);
 
         // Inicializar variables para dimensiones del buffer de la ventana
@@ -253,7 +253,7 @@ int main()
             100.0f
         );
 
-        // Establecer de forma dinámica las dimensiones del área de dibujo de OpenGL
+        // Establecer de forma dinÃ¡mica las dimensiones del Ã¡rea de dibujo de OpenGL
         glViewport(0, 0, framebufferWidth, framebufferHeight);
 
         // Calcular el tiempo transcurrido entre fotogramas (Delta Time)
@@ -261,7 +261,7 @@ int main()
         deltaTime = currentFrame - lastFrame;
         lastFrame = currentFrame;
 
-        // Lógica de transición / Fade del tour
+        // LÃ³gica de transiciÃ³n / Fade del tour
         if (tourFadeActive) {
             if (tourFadeSettings.durationSeconds <= 0.0f) {
                 tourFadeOpacity = 0.0f;
@@ -279,16 +279,16 @@ int main()
         // Capturar eventos del sistema (Teclado, Mouse, Ventana)
         glfwPollEvents();
 
-        // Procesar entradas del menú principal o de pausa
+        // Procesar entradas del menÃº principal o de pausa
         processMenuInput(window, menu, sound, hitboxDebug);
 
-        // Procesar lógica y controles del gameplay únicamente si el menú está cerrado y el juego inició
+        // Procesar lÃ³gica y controles del gameplay Ãºnicamente si el menÃº estÃ¡ cerrado y el juego iniciÃ³
         if (!menuOpen && gameStarted) {
             glm::vec3 oldPos = camera.GetPosition();
             processGameplayInput(window, flashlightEnabled, bloomEnabled);
             glm::vec3 newPos = camera.GetPosition();
 
-            // Actualizar coordenadas, dirección y estado de la linterna acoplada a la cámara
+            // Actualizar coordenadas, direcciÃ³n y estado de la linterna acoplada a la cÃ¡mara
             scene.SetLight(flashlightLightIndex, {
                 LightType::Spot,
                 newPos + camera.GetFront() * 0.25f,
@@ -326,16 +326,16 @@ int main()
 
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        // Decidir qué renderizar estructuralmente dentro del FBO sin romper el ciclo
+        // Decidir quÃ© renderizar estructuralmente dentro del FBO sin romper el ciclo
         if (!gameStarted) {
-            // --- ESTADOS PARA INTERFAZ 2D DEL MENÚ INICIAL ---
+            // --- ESTADOS PARA INTERFAZ 2D DEL MENÃš INICIAL ---
             glEnable(GL_BLEND);
             glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-            glDisable(GL_DEPTH_TEST); // Evita que la UI se oculte detrás del z-buffer inexistente
+            glDisable(GL_DEPTH_TEST); // Evita que la UI se oculte detrÃ¡s del z-buffer inexistente
 
             menu.Render(framebufferWidth, framebufferHeight);
 
-            // Limpieza inmediata de estados tras renderizar el menú
+            // Limpieza inmediata de estados tras renderizar el menÃº
             glDisable(GL_BLEND);
             glEnable(GL_DEPTH_TEST);
             glBindVertexArray(0);
@@ -363,7 +363,7 @@ int main()
             glDepthFunc(GL_LESS);
 
             // -----------------------------------------------------------------
-            // 2. Activar el shader de los objetos e iluminar los límites de la linterna (Spotlight)
+            // 2. Activar el shader de los objetos e iluminar los lÃ­mites de la linterna (Spotlight)
             // -----------------------------------------------------------------
             shader.Use();
             shader.SetFloat("spotCutOff", glm::cos(glm::radians(12.5f)));
@@ -373,7 +373,7 @@ int main()
             scene.Draw(shader, emissiveShader, camera, globalProjection);
             glBindVertexArray(0);
 
-            // 4. Renderizar líneas de depuración de colisiones (Hitboxes) en caso de estar activo
+            // 4. Renderizar lÃ­neas de depuraciÃ³n de colisiones (Hitboxes) en caso de estar activo
             if (hitboxDebug) {
                 hitboxShader.Use();
                 glm::mat4 projection = glm::perspective(glm::radians(camera.GetZoom()),
@@ -389,7 +389,7 @@ int main()
                 glBindVertexArray(0);
             }
 
-            // 5. Aplicar la capa/overlay de la transición del Tour si corresponde
+            // 5. Aplicar la capa/overlay de la transiciÃ³n del Tour si corresponde
             if (tourFadeOpacity > 0.0f) {
                 glEnable(GL_BLEND);
                 glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -404,7 +404,7 @@ int main()
                 glBindVertexArray(0);
             }
 
-            // 6. Si el juego está activo pero abriste el menú de pausa, lo superponemos en el FBO
+            // 6. Si el juego estÃ¡ activo pero abriste el menÃº de pausa, lo superponemos en el FBO
             if (menuOpen) {
                 glEnable(GL_BLEND);
                 glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -424,7 +424,7 @@ int main()
         glBindFramebuffer(GL_FRAMEBUFFER, 0); // Regresamos al buffer por defecto del monitor
 
         // AISLAMIENTO TOTAL: Forzar la limpieza de estados antes del dibujo del Quad de Bloom
-        glUseProgram(0);           // Matar cualquier shader activo residual (ej: fuentes/UI del menú)
+        glUseProgram(0);           // Matar cualquier shader activo residual (ej: fuentes/UI del menÃº)
         glBindVertexArray(0);      // Asegurar que no haya VAO enlazado incorrectamente
         glDisable(GL_BLEND);       // El quad de Bloom debe sobreescribir la pantalla de manera 100% opaca
         glDisable(GL_DEPTH_TEST);  // Apagar profundidad porque el Quad de post-procesado es 2D puro

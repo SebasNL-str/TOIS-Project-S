@@ -44,6 +44,7 @@ struct FogLayer
     float baseHeight;
     float heightFalloff;
     float maxOpacity;
+    float solidCutoff;
 };
 
 // Niebla de dos capas || Two-layer fog
@@ -68,7 +69,7 @@ float CalculateFogAmount(FogLayer layer)
     float verticalOffset = max(FragPos.y - layer.baseHeight, 0.0);
     float heightFog = exp(-verticalOffset * layer.heightFalloff);
 
-    return clamp(distanceFog * densityFog * heightFog, 0.0, layer.maxOpacity);
+    return clamp(distanceFog * densityFog * heightFog, 0.0, min(layer.maxOpacity, 1.0));
 }
 
 // Mezcla la iluminacion con niebla local primero y luego con niebla lejana de encierro || Mix scene lighting with local fog first, then far enclosing fog
@@ -92,6 +93,18 @@ void main()
     // Descartar pixeles transparentes || Discard transparent pixels
     if (texColor.a < 0.5)
         discard;
+
+    // Ocultacion total para niebla lejana densa tipo Minecraft.
+    // Full occlusion for dense far fog, similar to low chunk-distance Minecraft fog.
+    if (fog.enabled)
+    {
+        float boundaryFogAmount = CalculateFogAmount(fog.boundaryLayer);
+        if (boundaryFogAmount >= fog.boundaryLayer.solidCutoff)
+        {
+            FragColor = vec4(fog.boundaryLayer.color, texColor.a);
+            return;
+        }
+    }
 
     // Normalizar y corregir orientacion de caras || Normalize and correct face orientation
     vec3 N = normalize(Normal);
@@ -152,7 +165,7 @@ void main()
         // Calcular color final de la luz combinando su color e intensidad HDR
         vec3 lightColor = lights[i].color * lights[i].intensity;
 
-        // Factor de albedo fÌsico (absorciÛn de energÌa para materiales opacos normales)
+        // Factor de albedo f√≠sico (absorci√≥n de energ√≠a para materiales opacos normales)
         float materialAlbedo = 0.20; 
 
         // Aplicamos el albedo para balancear la reflectividad de la superficie
@@ -163,9 +176,9 @@ void main()
         result += (diffuse + specular) * attenuation;
     }
     
-    // Aplicar las capas de niebla sobre el rango din·mico HDR calibrado
+    // Aplicar las capas de niebla sobre el rango din√°mico HDR calibrado
     result = ApplyFog(result);
 
-    // Asignar color final reteniendo la informaciÛn HDR para el pipeline de post-procesado
+    // Asignar color final reteniendo la informaci√≥n HDR para el pipeline de post-procesado
     FragColor = vec4(result, texColor.a);
 }

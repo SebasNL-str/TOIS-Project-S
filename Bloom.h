@@ -16,7 +16,7 @@ public:
     void Init(int width, int height);
 
     // Renderizar post-procesado bloom
-    void Render(bool enabled); // Ahora acepta el estado de debug
+    void Render(bool enabled);
 
     // Recursos accesibles desde el loop
     GLuint hdrFBO;

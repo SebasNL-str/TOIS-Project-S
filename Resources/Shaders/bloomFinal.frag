@@ -14,31 +14,18 @@ uniform sampler2D blurTex;
 uniform bool bloomEnabled;
 
 void main()
-{             
-    // Muestrear la escena original (nitida) y el mapa de desenfoque (Bloom)
-    vec3 hdrColor = texture(sceneTex, TexCoords).rgb;      
+{
+    vec3 hdrColor = texture(sceneTex, TexCoords).rgb;
     vec3 bloomColor = texture(blurTex, TexCoords).rgb;
-    
-    // Si el Bloom esta habilitado mediante la tecla B, realizamos la mezcla aditiva
-    if(bloomEnabled)
+
+    if (bloomEnabled)
     {
-        hdrColor += bloomColor; 
+        hdrColor += bloomColor;
     }
-    
-    // =========================================================================
-    // MAPEO DE TONOS (TONEMAPPING) POR EXPOSICIÓN
-    // =========================================================================
-    // Comprime los valores flotantes masivos (> 1.0) al rango visible [0.0, 1.0].
-    // Puedes ajustar el valor de 'exposure' (ej. 0.8 o 1.2) para alterar el brillo general.
-    float exposure = 1.0; 
+
+    float exposure = 1.0;
     vec3 result = vec3(1.0) - exp(-hdrColor * exposure);
-    
-    // =========================================================================
-    // CORRECCIÓN GAMMA (Estándar sRGB 2.2)
-    // =========================================================================
-    // Evita que los colores se vean lavados, oscuros o sobresaturados en el monitor.
     result = pow(result, vec3(1.0 / 2.2));
-  
-    // Salida final con opacidad completa
+
     FragColor = vec4(result, 1.0);
 }

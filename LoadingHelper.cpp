@@ -1,4 +1,4 @@
-#include "LoadingHelper.h"
+﻿#include "LoadingHelper.h"
 
 // Ejecutar el proceso secuencial de carga de recursos del juego || Execute the sequential game asset loading process
 GAssets ExecuteInteractiveLoading(GLFWwindow* window, Shader& loadingShader, GLuint barVAO, GLuint barVBO) {
@@ -25,7 +25,7 @@ GAssets ExecuteInteractiveLoading(GLFWwindow* window, Shader& loadingShader, GLu
             glfwWaitEventsTimeout(0.016);
         }
 
-        // Procesar la carga del recurso seg�n el estado actual || Process asset loading based on current state
+        // Procesar la carga del recurso según el estado actual || Process asset loading based on current state
         switch (loadingState) {
         case 0:
             // Instanciar el gestor de sonido ambiental || Instantiate the ambient sound manager
