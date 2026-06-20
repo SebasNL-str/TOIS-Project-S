@@ -27,6 +27,9 @@ public:
     // Activar el programa de shader para su uso || Activate the shader program for use
     void Use();
 
+    // Destructor para liberar los recursos de OpenGL || Destructor to free OpenGL resources
+    ~Shader();
+
     // Enviar una matriz de 4x4 al shader || Send a 4x4 matrix to the shader
     void SetMat4(
         const std::string& name,

@@ -3,7 +3,7 @@
 #include <memory>
 #include <vector>
 #include <future> 
-#include <chrono>  
+#include <chrono> 
 
 #include "Skybox.h"
 #include "Camera.h"
@@ -415,6 +415,11 @@ int main()
 
     // Liberacion de recursos multimedia y terminacion del contexto GLFW || Release multimedia resources and GLFW context termination
     sound.StopAmbient();
+
+    // Eliminar buffers de la barra de carga generados en la GPU || Delete loading bar buffers generated on the GPU
+    glDeleteVertexArrays(1, &barVAO);
+    glDeleteBuffers(1, &barVBO);
+
     glfwTerminate();
     return 0;
 }

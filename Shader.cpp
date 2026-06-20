@@ -155,3 +155,8 @@ void Shader::SetBool(const std::string& name, bool value) const {
     glUniform1i(glGetUniformLocation(ID, name.c_str()), (int)value);
 }
 
+// Destructor para eliminar el programa de shader de la GPU || Destructor to delete the shader program from GPU
+Shader::~Shader()
+{
+    glDeleteProgram(ID);
+}
