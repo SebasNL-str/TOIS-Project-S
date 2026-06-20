@@ -1,34 +1,36 @@
 #version 330 core
+// Color de salida del fragmento || Fragment output color
 out vec4 FragColor;
+
+// Coordenadas de textura interpoladas de entrada || Input interpolated texture coordinates
 in vec2 TexCoords;
 
+// Sampler de la textura de la escena || Scene texture sampler
 uniform sampler2D sceneTex;
 
 void main()
 {           
-    // Muestrear el color de la escena HDR original
+    // Muestrear el mapa de bits de la escena original || Sample the original scene bitmap
     vec3 color = texture(sceneTex, TexCoords).rgb;
     
-    // 1. Calcular luminancia según la percepción del ojo humano (CIE 1931)
+    // Calcular factor de luminancia perceptual || Calculate perceptual luminance factor
     float brightness = dot(color, vec3(0.2126, 0.7152, 0.0722));
     
-    // 2. Parámetros calibrados del Umbral Suave (Soft Knee)
-    float threshold = 0.6; // Bajamos el umbral para rescatar la luz de los emisores
-    float knee = 0.4;      // Mantenemos una curva de transición sedosa y orgánica
+    // Definir parametros de umbral y transicion suave || Define threshold and smooth transition parameters
+    float threshold = 0.6; 
+    float knee = 0.4;      
 
-    // 3. Ecuación matemática de Soft Knee para evitar bordes duros
+    // Aplicar ecuacion matemática de curva suave || Apply soft knee curve mathematical equation
     float soft = brightness - threshold + knee;
     soft = clamp(soft, 0.0, 2.0 * knee);
     soft = (soft * soft) / (4.0 * knee + 0.0001);
     
-    // Combinar la curva suave con la extracción estándar
+    // Evaluar la contribución final de brillo || Evaluate final brightness contribution
     float contribution = max(soft, brightness - threshold);
     
-    // 4. BOOST DE ENERGÍA (Ganancia)
-    // Multiplicamos por 2.5 para que los objetos emisores vuelvan a brillar con fuerza.
-    // Al dividir por el brillo, normalizamos la aportación de color original.
+    // Aplicar factor de multiplicacion de ganancia energetica || Apply energy gain multiplication factor
     contribution = (contribution * 2.5) / max(brightness, 0.0001);
 
-    // Guardar el color filtrado y potenciado listo para el shader de desenfoque (Blur)
+    // Asignar el color filtrado y escalado resultante || Assign the resulting filtered and scaled color
     FragColor = vec4(color * contribution, 1.0);
 }

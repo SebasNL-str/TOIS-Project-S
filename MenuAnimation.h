@@ -8,6 +8,7 @@
 // GLM include
 #include <glm.hpp>
 
+// Modos de comportamiento lógicos para el movimiento de la interfaz || Logical behavior modes for interface movement
 enum class MenuIntroMotionMode
 {
     Grouped,
@@ -15,6 +16,7 @@ enum class MenuIntroMotionMode
     SequentialReveal
 };
 
+// Identificadores de los componentes visuales del menú || Identifiers for the menu visual components
 enum class MenuAnimatedElement
 {
     Title,
@@ -23,6 +25,7 @@ enum class MenuAnimatedElement
     Footer
 };
 
+// Parámetros de configuración temporal y geométrica de la animación || Temporal and geometric configuration parameters for the animation
 struct MenuElementAnimationSettings
 {
     float durationSeconds = 5.0f;
@@ -31,12 +34,14 @@ struct MenuElementAnimationSettings
     glm::vec2 finalOffset = glm::vec2(0.0f, 0.0f);
 };
 
+// Matriz de estado final con las transformaciones del fragmento || Final state matrix containing fragment transformations
 struct MenuElementTransform
 {
     glm::vec2 position = glm::vec2(0.0f, 0.0f);
     float scale = 1.0f;
     float opacity = 1.0f;
 };
+
 
 // Configuracion editable de la animacion inicial del menu || Editable menu intro animation settings
 struct MenuIntroAnimationSettings
@@ -78,16 +83,21 @@ class MenuIntroAnimation
 public:
     MenuIntroAnimation();
 
+    // Configurar y recuperar los parametros esteticos de la animacion || Configure and retrieve animation aesthetic parameters
     void Configure(const MenuIntroAnimationSettings& newSettings);
     const MenuIntroAnimationSettings& GetSettings() const;
     MenuIntroAnimationSettings& EditSettings();
 
+    // Controlar el ciclo de ejecucion de la introduccion || Control the introduction execution cycle
     void Start();
     void Skip();
     bool HasPlayed() const;
     bool IsPlaying() const;
 
+    // Calcular las coordenadas de origen de la interfaz || Calculate interface origin coordinates
     glm::vec2 GetMenuOrigin(float screenWidth, float screenHeight, float menuWidth, float menuHeight);
+
+    // Calcular transformaciones dinamicas para componentes individuales || Calculate dynamic transformations for individual components
     MenuElementTransform GetElementTransform(
         MenuAnimatedElement element,
         std::size_t itemIndex,
@@ -99,11 +109,13 @@ public:
         float menuHeight);
 
 private:
+    // Variables de control de estado y temporizacion || State control and timing variables
     MenuIntroAnimationSettings settings;
     bool played;
     bool playing;
     double startedAtSeconds;
 
+    // Rutinas internas para el cálculo de interpolaciones y progreso || Internal routines for interpolation and progress calculation
     const MenuElementAnimationSettings& GetIndependentSettings(MenuAnimatedElement element, std::size_t itemIndex) const;
     float GetLongestIndependentDuration() const;
     float GetRevealOrder(MenuAnimatedElement element, std::size_t itemIndex) const;
@@ -112,3 +124,4 @@ private:
     float EaseOutCubic(float value) const;
     double NowSeconds() const;
 };
+

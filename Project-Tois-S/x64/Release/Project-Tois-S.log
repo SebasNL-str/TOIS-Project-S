@@ -1,25 +1,16 @@
 ﻿  Bloom.cpp
-  FogSettings.cpp
-  Hitbox.cpp
   InputHandler.cpp
   LoadingHelper.cpp
-  LoadingScreen.cpp
   Main.cpp
   MenuAnimation.cpp
   MenuController.cpp
-  Mesh.cpp
-  Model.cpp
-C:\Users\DELL\source\repos\TOIS-Project-S\Model.cpp(221,31): warning C4267: 'inicializando': conversión de 'size_t' a 'unsigned int'; posible pérdida de datos
-  Scene.cpp
-  Shader.cpp
-  Skybox.cpp
-  Utils.cpp
   WindowManager.cpp
 LINK : warning LNK4098: la biblioteca predeterminada'LIBCMT' entra en conflicto con otras bibliotecas; use la biblioteca /NODEFAULTLIB:biblioteca
 LINK : warning LNK4098: la biblioteca predeterminada'MSVCRTD' entra en conflicto con otras bibliotecas; use la biblioteca /NODEFAULTLIB:biblioteca
   Generando código
-  Previous IPDB not found, fall back to full compilation.
-  All 1384 functions were compiled because no usable IPDB/IOBJ from previous compilation was found.
+  11 of 1397 functions ( 0.8%) were compiled, the rest were copied from previous compilation.
+    0 functions were new in current compilation
+    6 functions had inline decision re-evaluated but remain unchanged
   Generación de código finalizada
 glew32s.lib(glew.obj) : warning LNK4099: no se encontró PDB 'glew32s.pdb' con 'glew32s.lib(glew.obj)' o en 'C:\Users\DELL\Source\Repos\TOIS-Project-S\x64\Release\glew32s.pdb'; se vinculará el objeto sin tener en cuenta información de depuración
 LINK : warning LNK4286: "__glewDeleteBuffers" importa el símbolo "glew32s.lib(glew.obj)" definido en "LoadingScreen.obj"

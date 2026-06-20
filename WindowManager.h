@@ -9,11 +9,11 @@
 // GLFW include
 #include <GLFW/glfw3.h>
 
-// Inicializa GLFW, calcula el tamaño de pantalla completa y crea la ventana
+// Inicializar la ventana de GLFW y calcular el tamaño de pantalla completa || Initialize GLFW window and calculate full screen size
 GLFWwindow* InitWindow(int& widthR, int& heightR, const std::string& title);
 
-// Carga el icono de la ventana usando tu configuración de SOIL
+// Cargar el icono del sistema operativo en la ventana || Load the operating system icon into the window
 void LoadWindowIcon(GLFWwindow* window, const std::string& path);
 
-// Configura GLEW y los estados nativos de OpenGL (Depth Test, Blending)
+// Configurar extensiones de GLEW y estados nativos de OpenGL || Configure GLEW extensions and native OpenGL states
 bool InitOpenGLState();

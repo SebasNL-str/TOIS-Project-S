@@ -63,24 +63,37 @@ namespace MenuContent
 
 namespace
 {
+    // Aplicar la configuracion del estilo visual de la interfaz || Apply the interface visual style configuration
     void ApplyMenuVisualStyle(MenuRenderer& menu)
     {
         MenuSettings& settings = menu.EditSettings();
+
+        // Alternar el panel y la imagen segun el estado del juego || Toggle panel and image based on game state
         settings.drawPanel = gameStarted;
         settings.useBackgroundImage = !gameStarted;
+
+        // Configurar el color de fondo y la opacidad alpha || Configure background color and alpha opacity
         settings.backgroundColor = gameStarted
             ? glm::vec4(0.0f, 0.0f, 0.0f, 0.0f)
             : glm::vec4(0.03f, 0.03f, 0.04f, 1.0f);
+
+        // Establecer las coordenadas de centrado del panel || Set panel centering coordinates
         settings.panelCenterXPercent = gameStarted ? 0.29f : 0.50f;
         settings.panelCenterYPercent = 0.50f;
+
+        // Definir el color y la transparencia del contenedor || Define container color and transparency
         settings.panelColor = gameStarted
             ? glm::vec4(0.03f, 0.03f, 0.04f, 0.62f)
             : glm::vec4(0.08f, 0.08f, 0.10f, 0.0f);
+
+        // Definir las dimensiones y escalas del texto del menu || Define menu text dimensions and scales
         settings.panelWidth = 430.0f;
         settings.titleScale = 4.0f;
         settings.subtitleScale = 2.0f;
         settings.itemScale = 2.5f;
         settings.footerScale = 1.5f;
+
+        // Configurar restricciones logicas de la interfaz || Configure interface logical restrictions
         settings.onlyBackSelectable = false;
         settings.useCreditsLayout = false;
     }
