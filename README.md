@@ -16,7 +16,7 @@ Here are some previews of the environment, lighting effects, and assets inside t
 
 | Gameplay View | Dynamic Lighting & Atmosphere |
 | ------------- | ----------------------------- |
-| ![Cemetery View 1](screenshots/gameplay1.png) | ![Cemetery View 2](screenshots/gameplay2.png) |
+| ![Cemetery View 1](screenshots/Image.jpeg) | ![Cemetery View 2](screenshots/Image2.jpeg) |  ![Cemetery View 3](screenshots/Image3) |
 
 ## Features
 
