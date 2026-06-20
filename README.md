@@ -14,8 +14,8 @@ Check out the project in action! You can watch our program and feature demonstra
 
 Here are some previews of the environment, lighting effects, and assets inside the cemetery scene:
 
-| Gameplay View | Dynamic Lighting & Atmosphere |
-| ------------- | ----------------------------- |
+| Gameplay View |Gameplay View 2 | Dynamic Lighting & Atmosphere |
+| ------------- | ----------------------------- |-------------------------------------------|
 | ![Cemetery View 1](screenshots/Image.jpeg) | ![Cemetery View 2](screenshots/Image2.jpeg) |  ![Cemetery View 3](screenshots/Image3) |
 
 ## Features
